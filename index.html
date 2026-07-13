@@ -59,6 +59,17 @@ em{color:var(--purple);font-style:italic}
 @keyframes tts-pulse{0%,100%{box-shadow:0 4px 18px rgba(0,0,0,.45),0 0 0 0 rgba(255,215,0,.3)}50%{box-shadow:0 4px 18px rgba(0,0,0,.45),0 0 0 10px rgba(255,215,0,0)}}
 #tts-tooltip{position:fixed;bottom:88px;right:24px;z-index:981;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
 #tts-btn:hover + #tts-tooltip{opacity:1}
+/* ─── SECTION-LEVEL TTS BUTTONS ─── */
+.s-tts{display:inline-flex;align-items:center;justify-content:center;background:none;border:none;font-size:12px;cursor:pointer;opacity:.3;padding:0 0 0 7px;vertical-align:middle;line-height:1;transition:opacity .18s,transform .14s;flex-shrink:0;color:inherit}
+.s-tts:hover{opacity:.85;transform:scale(1.2)}
+.s-tts.s-on{opacity:1!important;color:var(--accent);animation:s-pulse 1.5s ease-in-out infinite}
+@keyframes s-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.s-tts-card{position:absolute;top:9px;right:9px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;opacity:.35;transition:opacity .18s;z-index:3;flex-shrink:0;color:var(--text)}
+.s-tts-card:hover{opacity:1;border-color:var(--accent)}
+.s-tts-card.s-on{opacity:1;border-color:var(--accent);background:rgba(255,215,0,.1);animation:s-pulse 1.5s ease-in-out infinite}
+.s-tts-panel{display:flex;align-items:center;gap:7px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:14px;width:fit-content;transition:border-color .18s,background .18s}
+.s-tts-panel:hover{border-color:var(--accent);background:rgba(255,215,0,.1);color:var(--text)}
+.s-tts-panel.s-on{border-color:var(--accent);background:rgba(255,215,0,.12);color:var(--accent);animation:s-pulse 1.5s ease-in-out infinite}
 .nav-logo{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap;margin-right:16px;letter-spacing:.5px}
 .nav-btn{background:none;border:none;color:var(--text2);font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s}
 .nav-btn:hover,.nav-btn.active{background:var(--bg3);color:var(--text)}
@@ -9876,6 +9887,7 @@ function switchKJV(id) {
     t.style.color = isActive ? 'var(--text)' : 'var(--text2)';
     t.style.fontWeight = isActive ? '600' : 'normal';
   });
+  setTimeout(() => { if (window.TTS) TTS.initSectionTTS(); }, 120);
 }
 </script>
 
@@ -9893,6 +9905,7 @@ function showPage(id, btn) {
   window.scrollTo({top: 0, behavior: 'smooth'});
   closeHam();
   if (window.TTS && TTS.speaking) TTS.stop();
+  setTimeout(() => { if (window.TTS) TTS.initSectionTTS(); }, 120);
 }
 
 // --- CATEGORY TABS ---
@@ -10527,45 +10540,37 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ═══════════════════════════════════════════════════════
-// TEXT-TO-SPEECH ENGINE
+// TEXT-TO-SPEECH ENGINE — full-site granular edition
 // ═══════════════════════════════════════════════════════
 window.TTS = (function() {
   const synth = window.speechSynthesis;
   let speaking = false;
   let voice = null;
   let utt = null;
-  // Voice preference order for English male British accent
-  const PREF_VOICES = ['Google UK English Male', 'Daniel', 'Arthur', 'Oliver', 'Harry'];
+  let activeBtn = null;
+  const PREF = ['Google UK English Male','Daniel','Arthur','Oliver','Harry'];
 
   function loadVoice() {
-    const voices = synth.getVoices();
-    if (!voices.length) return;
-    for (const name of PREF_VOICES) {
-      const v = voices.find(v => v.name === name);
-      if (v) { voice = v; return; }
+    const v = synth.getVoices();
+    if (!v.length) return;
+    for (const n of PREF) {
+      const found = v.find(x => x.name === n);
+      if (found) { voice = found; return; }
     }
-    // Fallback: any en-GB
-    voice = voices.find(v => v.lang === 'en-GB') ||
-            voices.find(v => v.lang.startsWith('en-GB')) ||
-            voices.find(v => v.lang.startsWith('en'));
+    voice = v.find(x => x.lang === 'en-GB') || v.find(x => x.lang.startsWith('en-GB')) || v.find(x => x.lang.startsWith('en'));
   }
 
-  function getReadableText() {
-    // Get the active page
-    const page = document.querySelector('.page.active');
-    if (!page) return '';
-    // Clone and remove nav / button / script elements
-    const clone = page.cloneNode(true);
-    clone.querySelectorAll('button, script, style, .kjv-subtab-bar, nav, .sub-tab-row, .tab-row').forEach(el => el.remove());
-    // Also get active sub-panels if present
-    const text = clone.innerText || clone.textContent || '';
-    // Clean up excessive whitespace
-    return text.replace(/\s{3,}/g, '
+  function cleanText(t) { return (t || '').replace(/\s{3,}/g,'\n\n').trim(); }
 
-').trim();
+  function stop() {
+    synth.cancel();
+    speaking = false;
+    if (activeBtn) { activeBtn.classList.remove('s-on'); activeBtn.innerHTML = '🔈'; }
+    activeBtn = null;
+    updateGlobalBtn();
   }
 
-  function updateBtn() {
+  function updateGlobalBtn() {
     const btn = document.getElementById('tts-btn');
     const tip = document.getElementById('tts-tooltip');
     if (!btn) return;
@@ -10574,97 +10579,170 @@ window.TTS = (function() {
     if (tip) tip.textContent = speaking ? 'Stop reading' : 'Read aloud';
   }
 
-  function stop() {
-    synth.cancel();
-    speaking = false;
-    updateBtn();
-  }
-
-  function speak() {
-    const text = getReadableText();
+  function readText(text, btn) {
     if (!text) return;
+    if (activeBtn === btn && speaking) { stop(); return; }
+    if (speaking) stop();
     if (!voice) loadVoice();
+    activeBtn = btn || null;
+    if (activeBtn) { activeBtn.classList.add('s-on'); activeBtn.innerHTML = '🔊'; }
     utt = new SpeechSynthesisUtterance(text);
     if (voice) utt.voice = voice;
-    utt.lang = 'en-GB';
-    utt.rate = 0.88;
-    utt.pitch = 0.92;
-    utt.volume = 1;
-    utt.onend = () => { speaking = false; updateBtn(); };
-    utt.onerror = () => { speaking = false; updateBtn(); };
+    utt.lang = 'en-GB'; utt.rate = 0.88; utt.pitch = 0.92; utt.volume = 1;
+    utt.onend = utt.onerror = () => {
+      speaking = false;
+      if (activeBtn) { activeBtn.classList.remove('s-on'); activeBtn.innerHTML = '🔈'; }
+      activeBtn = null;
+      updateGlobalBtn();
+    };
     synth.speak(utt);
     speaking = true;
-    updateBtn();
+    updateGlobalBtn();
+  }
+
+  function readSection(el, btn) { readText(cleanText(el.innerText || el.textContent || ''), btn); }
+
+  function getPageText() {
+    const page = document.querySelector('.page.active');
+    if (!page) return '';
+    const clone = page.cloneNode(true);
+    clone.querySelectorAll('button,script,style,.kjv-subtab-bar,.sub-tab-row,.tab-row,nav').forEach(e=>e.remove());
+    return cleanText(clone.innerText || clone.textContent || '');
   }
 
   function toggle() {
-    if (speaking) { stop(); } else { speak(); }
+    if (speaking) { stop(); } else { readText(getPageText(), null); }
   }
 
-  // Init button with drag support
-  function initBtn() {
+  // ── Section-TTS auto-injection ──
+  function mkBtn(type) {
+    const b = document.createElement('button');
+    b.innerHTML = '🔈';
+    b.title = 'Read aloud';
+    b.setAttribute('aria-label','Read this section aloud');
+    b.className = type;
+    return b;
+  }
+
+  function getHeadingText(h) {
+    const level = parseInt(h.tagName[1]);
+    let text = (h.innerText || '') + '\n\n';
+    let el = h.nextElementSibling;
+    while (el) {
+      const t = el.tagName || '';
+      if (/^H[1-6]$/.test(t) && parseInt(t[1]) <= level) break;
+      text += (el.innerText || el.textContent || '') + '\n\n';
+      el = el.nextElementSibling;
+    }
+    return text.replace(/\s{3,}/g,'\n\n').trim();
+  }
+
+  function initSectionTTS() {
+    // ── 1. Heading buttons (h2, h3, h4 outside nav/ham/tab-bars) ──
+    document.querySelectorAll('h2,h3,h4,h5').forEach(h => {
+      if (h.dataset.ttsInit) return;
+      if (h.closest('.ham-panel,#topnav,.sub-tab-row,.kjv-subtab-bar,.tab-row,.dl-modal')) return;
+      h.dataset.ttsInit = '1';
+      const btn = mkBtn('s-tts');
+      btn.addEventListener('click', e => { e.stopPropagation(); readText(getHeadingText(h), btn); });
+      h.appendChild(btn);
+    });
+
+    // ── 2. Cards — position:relative + absolute corner button ──
+    const CARD_SEL = [
+      '.card','.lexicon-card','.scholar-card','.type-card','.context-card',
+      '.bib-card','.stat-box','.cat-card','.ref-card','.term-card',
+      '[class$="-card"]','[class*=" card"]'
+    ].join(',');
+    document.querySelectorAll(CARD_SEL).forEach(card => {
+      if (card.dataset.ttsInit) return;
+      if (card.closest('.ham-panel,#topnav,.dl-modal')) return;
+      card.dataset.ttsInit = '1';
+      const cs = window.getComputedStyle(card);
+      if (cs.position === 'static') card.style.position = 'relative';
+      const btn = mkBtn('s-tts-card');
+      btn.addEventListener('click', e => { e.stopPropagation(); readSection(card, btn); });
+      card.appendChild(btn);
+    });
+
+    // ── 3. KJV panels — panel-level read button at top ──
+    document.querySelectorAll('.kjv-panel').forEach(panel => {
+      if (panel.dataset.ttsInit) return;
+      panel.dataset.ttsInit = '1';
+      const btn = mkBtn('s-tts-panel');
+      btn.innerHTML = '🔈 Read this section';
+      btn.addEventListener('click', e => { e.stopPropagation(); readSection(panel, btn); });
+      panel.insertBefore(btn, panel.firstChild);
+    });
+
+    // ── 4. Category panels ──
+    document.querySelectorAll('.cat-panel,.sub-panel,.content-panel').forEach(panel => {
+      if (panel.dataset.ttsInit) return;
+      panel.dataset.ttsInit = '1';
+      const btn = mkBtn('s-tts-panel');
+      btn.innerHTML = '🔈 Read this section';
+      btn.addEventListener('click', e => { e.stopPropagation(); readSection(panel, btn); });
+      panel.insertBefore(btn, panel.firstChild);
+    });
+
+    // ── 5. Generic bordered/bg sections (div with explicit border style that look like section blocks) ──
+    document.querySelectorAll('.page.active > .container > div[style], .page.active > div[style]').forEach(div => {
+      if (div.dataset.ttsInit) return;
+      const s = div.getAttribute('style') || '';
+      if (!s.includes('border') && !s.includes('background')) return;
+      if (div.children.length < 1) return;
+      div.dataset.ttsInit = '1';
+      const cs = window.getComputedStyle(div);
+      if (cs.position === 'static') div.style.position = 'relative';
+      const btn = mkBtn('s-tts-card');
+      btn.style.cssText = 'top:6px;right:6px;opacity:.28;font-size:12px;width:22px;height:22px';
+      btn.addEventListener('click', e => { e.stopPropagation(); readSection(div, btn); });
+      div.appendChild(btn);
+    });
+  }
+
+  // ── Global floating button drag ──
+  function initGlobalBtn() {
     const btn = document.getElementById('tts-btn');
     if (!btn) return;
     btn.textContent = '🔈';
-
-    // ── Drag logic ──
-    let dragging = false, moved = false;
-    let sx, sy, sl, st;
-
-    function startDrag(cx, cy) {
-      const rect = btn.getBoundingClientRect();
-      sx = cx; sy = cy;
-      sl = rect.left; st = rect.top;
-      btn.style.right = 'auto'; btn.style.bottom = 'auto';
-      btn.style.left = sl + 'px'; btn.style.top = st + 'px';
-      dragging = true; moved = false;
+    let dragging=false,moved=false,sx,sy,sl,st;
+    function startDrag(cx,cy){
+      const r=btn.getBoundingClientRect();
+      sx=cx;sy=cy;sl=r.left;st=r.top;
+      btn.style.right='auto';btn.style.bottom='auto';
+      btn.style.left=sl+'px';btn.style.top=st+'px';
+      dragging=true;moved=false;
     }
-
-    function doDrag(cx, cy) {
-      if (!dragging) return;
-      const dx = cx - sx, dy = cy - sy;
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-      const W = window.innerWidth, H = window.innerHeight;
-      const bw = btn.offsetWidth, bh = btn.offsetHeight;
-      btn.style.left = Math.max(8, Math.min(W - bw - 8, sl + dx)) + 'px';
-      btn.style.top  = Math.max(68, Math.min(H - bh - 8, st + dy)) + 'px';
+    function doDrag(cx,cy){
+      if(!dragging)return;
+      const dx=cx-sx,dy=cy-sy;
+      if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;
+      const W=window.innerWidth,H=window.innerHeight;
+      btn.style.left=Math.max(8,Math.min(W-btn.offsetWidth-8,sl+dx))+'px';
+      btn.style.top=Math.max(68,Math.min(H-btn.offsetHeight-8,st+dy))+'px';
     }
-
-    function endDrag() {
-      if (!moved) toggle();
-      dragging = false;
-    }
-
-    // Mouse
-    btn.addEventListener('mousedown', e => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
-    document.addEventListener('mousemove', e => { if (dragging) doDrag(e.clientX, e.clientY); });
-    document.addEventListener('mouseup', () => { if (dragging) endDrag(); });
-
-    // Touch
-    btn.addEventListener('touchstart', e => {
-      const t = e.touches[0];
-      startDrag(t.clientX, t.clientY);
-    }, { passive: true });
-    document.addEventListener('touchmove', e => {
-      if (!dragging) return;
-      doDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-    document.addEventListener('touchend', () => { if (dragging) endDrag(); });
+    function endDrag(){if(!moved)toggle();dragging=false;}
+    btn.addEventListener('mousedown',e=>{e.preventDefault();startDrag(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',e=>{if(dragging)doDrag(e.clientX,e.clientY);});
+    document.addEventListener('mouseup',()=>{if(dragging)endDrag();});
+    btn.addEventListener('touchstart',e=>{const t=e.touches[0];startDrag(t.clientX,t.clientY);},{passive:true});
+    document.addEventListener('touchmove',e=>{if(!dragging)return;doDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+    document.addEventListener('touchend',()=>{if(dragging)endDrag();});
   }
 
-  // Wait for voices to load (Chrome fires voiceschanged event)
-  if (synth.onvoiceschanged !== undefined) {
-    synth.onvoiceschanged = loadVoice;
-  }
+  if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoice;
   loadVoice();
 
-  document.addEventListener('DOMContentLoaded', initBtn);
+  document.addEventListener('DOMContentLoaded', () => {
+    initGlobalBtn();
+    initSectionTTS();
+  });
   if (document.readyState !== 'loading') {
-    // DOM already ready
-    setTimeout(initBtn, 0);
+    setTimeout(() => { initGlobalBtn(); initSectionTTS(); }, 80);
   }
 
-  return { toggle, stop, speak, get speaking() { return speaking; } };
+  return { toggle, stop, readText, readSection, initSectionTTS, get speaking(){return speaking;} };
 })();
 
 </script>
