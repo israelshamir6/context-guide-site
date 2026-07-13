@@ -38,6 +38,27 @@ em{color:var(--purple);font-style:italic}
 
 /* ---- TOP NAV ---- */
 #topnav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,17,23,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px 0 20px;height:60px;gap:0;overflow:hidden}.nav-scroll{display:flex;align-items:center;gap:4px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding:0 6px}.nav-scroll::-webkit-scrollbar{display:none}.nav-dl-wrap{display:flex;align-items:center;flex-shrink:0;padding-left:8px;border-left:1px solid var(--border);margin-left:4px}
+/* ─── HAMBURGER ─── */
+.ham-btn{background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 10px;border-radius:6px;line-height:1;flex-shrink:0;transition:background .15s}
+.ham-btn:hover{background:var(--bg3)}
+.ham-overlay{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:990;background:rgba(0,0,0,.45)}
+.ham-overlay.open{display:block}
+.ham-panel{position:fixed;top:60px;left:0;bottom:0;width:min(320px,90vw);background:var(--bg2);border-right:1px solid var(--border);z-index:995;overflow-y:auto;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.4)}
+.ham-panel.open{transform:translateX(0)}
+.ham-section{padding:8px 0;border-bottom:1px solid var(--border)}
+.ham-section:last-child{border-bottom:none}
+.ham-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);padding:10px 20px 4px}
+.ham-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text2);font-size:14px;padding:10px 20px;cursor:pointer;transition:background .12s,color .12s}
+.ham-item:hover{background:var(--bg3);color:var(--text)}
+.ham-item.sub{padding-left:34px;font-size:13px;color:var(--text2)}
+.ham-item.sub:hover{background:var(--bg3);color:var(--accent)}
+/* ─── TTS BUTTON ─── */
+#tts-btn{position:fixed;bottom:28px;right:24px;z-index:980;width:52px;height:52px;border-radius:50%;background:var(--bg2);border:2px solid var(--border);color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.45);transition:border-color .2s,background .2s;touch-action:none;user-select:none}
+#tts-btn:hover{background:var(--bg3);border-color:var(--accent)}
+#tts-btn.playing{background:rgba(255,215,0,.12);border-color:var(--accent);animation:tts-pulse 1.8s ease-in-out infinite}
+@keyframes tts-pulse{0%,100%{box-shadow:0 4px 18px rgba(0,0,0,.45),0 0 0 0 rgba(255,215,0,.3)}50%{box-shadow:0 4px 18px rgba(0,0,0,.45),0 0 0 10px rgba(255,215,0,0)}}
+#tts-tooltip{position:fixed;bottom:88px;right:24px;z-index:981;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
+#tts-btn:hover + #tts-tooltip{opacity:1}
 .nav-logo{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap;margin-right:16px;letter-spacing:.5px}
 .nav-btn{background:none;border:none;color:var(--text2);font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s}
 .nav-btn:hover,.nav-btn.active{background:var(--bg3);color:var(--text)}
@@ -284,42 +305,67 @@ hr{border:none;border-top:1px solid var(--border);margin:24px 0}
 
 <!-- NAVIGATION -->
 <nav id="topnav">
-  <div class="nav-logo">⚑ Forms of Context</div>
-  <div class="nav-scroll">
-    <button class="nav-btn active" onclick="showPage('home',this)">Home</button>
-    <div class="dropdown">
-      <button class="nav-btn" onclick="showPage('context-types',this)" id="nav-ctx">Context Types ▾</button>
-      <div class="dropdown-content">
-        <div class="dropdown-head">6 Categories · 30 Types</div>
-        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat1')">🔤 Linguistic &amp; Textual</span>
-        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat2')">🏛️ Historical &amp; Cultural</span>
-        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat3')">✍️ Authorial &amp; Audience</span>
-        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat4')">⛪ Theological &amp; Ideological</span>
-        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat5')">📋 Compositional &amp; Transmission</span>
-        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat6')">🌍 Diaspora &amp; Community-Specific</span>
-      </div>
-    </div>
-    <button class="nav-btn" onclick="showPage('etymology',this)">Context vs. Etymology</button>
-    <button class="nav-btn" onclick="showPage('lexical',this)">Lexical Studies</button>
-    <button class="nav-btn" onclick="showPage('scholars',this)">Key Scholars</button>
-    <button class="nav-btn" onclick="showPage('bible-defines',this)">Bible Defines Itself</button>
-    <button class="nav-btn" onclick="showPage('word-errors',this)">Word-Study Errors</button>
-    <div class="dropdown">
-      <button class="nav-btn" id="nav-special">Special Topics ▾</button>
-      <div class="dropdown-content">
-        <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('psych')">🧠 Psychology of Adaptation</span>
-        <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('epist')">⚠️ Epistemological Consequences</span>
-        <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('multigeni')">👨‍👩‍👧‍👦 Multi-Generational Interpretation</span>
-      </div>
-    </div>
-    <button class="nav-btn" onclick="showPage('intertextuality',this)">Intertextuality</button>
-    <button class="nav-btn" onclick="showPage('glossary',this)">Glossary</button>
-    <button class="nav-btn" onclick="showPage('bibliography',this)">Bibliography</button>
-    <button class="nav-btn" onclick="showPage('kjv-authority',this)">KJV 1611 ⚑</button>
-  </div>
+  <button class="ham-btn" id="ham-btn" onclick="toggleHam()" aria-label="Open menu" aria-expanded="false">☰</button>
+  <div class="nav-logo" style="flex:1;padding-left:12px">⚑ Forms of Context</div>
   <div class="nav-dl-wrap">
     <button class="dl-btn-nav" onclick="openDLModal()">📥 Download</button>
   </div>
+</nav>
+
+<!-- Hamburger overlay + panel -->
+<div class="ham-overlay" id="ham-overlay" onclick="closeHam()"></div>
+<nav class="ham-panel" id="ham-panel" aria-label="Site navigation">
+
+  <div class="ham-section">
+    <button class="ham-item" onclick="navGo('home')">🏠 Home</button>
+  </div>
+
+  <div class="ham-section">
+    <div class="ham-section-label">Context Study</div>
+    <button class="ham-item" onclick="navGo('context-types')">📚 Context Types</button>
+    <button class="ham-item sub" onclick="navGoCat('context-types','cat1')">🔤 Linguistic &amp; Textual</button>
+    <button class="ham-item sub" onclick="navGoCat('context-types','cat2')">🏛️ Historical &amp; Cultural</button>
+    <button class="ham-item sub" onclick="navGoCat('context-types','cat3')">✍️ Authorial &amp; Audience</button>
+    <button class="ham-item sub" onclick="navGoCat('context-types','cat4')">⛪ Theological &amp; Ideological</button>
+    <button class="ham-item sub" onclick="navGoCat('context-types','cat5')">📋 Compositional &amp; Transmission</button>
+    <button class="ham-item sub" onclick="navGoCat('context-types','cat6')">🌍 Diaspora &amp; Community-Specific</button>
+    <button class="ham-item" onclick="navGo('etymology')">🔍 Context vs. Etymology</button>
+    <button class="ham-item" onclick="navGo('intertextuality')">🔗 Intertextuality</button>
+  </div>
+
+  <div class="ham-section">
+    <div class="ham-section-label">Reference</div>
+    <button class="ham-item" onclick="navGo('lexical')">📖 Lexical Studies</button>
+    <button class="ham-item" onclick="navGo('scholars')">🎓 Key Scholars</button>
+    <button class="ham-item" onclick="navGo('bible-defines')">✝️ Bible Defines Itself</button>
+    <button class="ham-item" onclick="navGo('word-errors')">⚠️ Word-Study Errors</button>
+    <button class="ham-item" onclick="navGo('glossary')">📋 Glossary</button>
+    <button class="ham-item" onclick="navGo('bibliography')">📚 Bibliography</button>
+  </div>
+
+  <div class="ham-section">
+    <div class="ham-section-label">Special Topics</div>
+    <button class="ham-item sub" onclick="navGoSub('special','psych')">🧠 Psychology of Adaptation</button>
+    <button class="ham-item sub" onclick="navGoSub('special','epist')">⚠️ Epistemological Consequences</button>
+    <button class="ham-item sub" onclick="navGoSub('special','multigeni')">👨‍👩‍👧‍👦 Multi-Generational Interpretation</button>
+  </div>
+
+  <div class="ham-section">
+    <div class="ham-section-label">KJV 1611</div>
+    <button class="ham-item" onclick="navGo('kjv-authority')" style="color:var(--accent);font-weight:600">⚑ KJV Authority</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-agenda')">📜 Documented Agenda</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-scholars')">📚 47 Scholars</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-textlineage')">🔗 Textual Lineage</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-wordforword')">⚖️ Word-for-Word</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-kingjames')">👑 King James &amp; The Plot</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-campaign')">🛡️ 400-Year Campaign</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-timeline')">📅 Timeline</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-omitted')">📋 Omitted Verses</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-luther')">⛪ Luther &amp; Reformation</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-refscholar')">📜 Reformation Scholarship</button>
+    <button class="ham-item sub" onclick="navGoKJV('kjv-bib')">📖 Bibliography</button>
+  </div>
+
 </nav>
 
 <div id="main">
@@ -9845,6 +9891,8 @@ function showPage(id, btn) {
   if (pg) pg.classList.add('active');
   if (btn) btn.classList.add('active');
   window.scrollTo({top: 0, behavior: 'smooth'});
+  closeHam();
+  if (window.TTS && TTS.speaking) TTS.stop();
 }
 
 // --- CATEGORY TABS ---
@@ -10191,7 +10239,11 @@ function wordDoc(sections, docTitle) {
     body += '<hr>';
     first = false;
   }
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${body}</body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${body}
+<!-- ── TTS FLOAT BUTTON ── -->
+<button id="tts-btn" title="Read this section aloud" aria-label="Read aloud"></button>
+<div id="tts-tooltip">Read aloud</div>
+</body></html>`;
 }
 
 // ── PDF GENERATOR ──────────────────────────────────────────────────────
@@ -10419,6 +10471,202 @@ function downloadCtx(fmt){
     dispatch([{title:label,body:b.text}],fname,label,fmt,'prog-ctx');
   },80);
 }
+
+
+// ═══════════════════════════════════════════════════════
+// HAMBURGER MENU
+// ═══════════════════════════════════════════════════════
+function toggleHam() {
+  const panel = document.getElementById('ham-panel');
+  const overlay = document.getElementById('ham-overlay');
+  const btn = document.getElementById('ham-btn');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    closeHam();
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    btn.textContent = '✕';
+  }
+}
+
+function closeHam() {
+  const panel = document.getElementById('ham-panel');
+  const overlay = document.getElementById('ham-overlay');
+  const btn = document.getElementById('ham-btn');
+  if (panel) { panel.classList.remove('open'); }
+  if (overlay) { overlay.classList.remove('open'); }
+  if (btn) { btn.setAttribute('aria-expanded', 'false'); btn.textContent = '☰'; }
+}
+
+function navGo(pageId) {
+  const fakBtn = { classList: { add: function(){}, remove: function(){} } };
+  showPage(pageId, fakBtn);
+  closeHam();
+}
+
+function navGoCat(pageId, catId) {
+  navGo(pageId);
+  setTimeout(() => switchCat(catId), 80);
+}
+
+function navGoSub(pageId, subId) {
+  navGo(pageId);
+  setTimeout(() => { if (typeof switchSub === 'function') switchSub(subId); }, 80);
+}
+
+function navGoKJV(panelId) {
+  navGo('kjv-authority');
+  setTimeout(() => { if (typeof switchKJV === 'function') switchKJV(panelId); }, 80);
+}
+
+// Close ham on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeHam();
+});
+
+// ═══════════════════════════════════════════════════════
+// TEXT-TO-SPEECH ENGINE
+// ═══════════════════════════════════════════════════════
+window.TTS = (function() {
+  const synth = window.speechSynthesis;
+  let speaking = false;
+  let voice = null;
+  let utt = null;
+  // Voice preference order for English male British accent
+  const PREF_VOICES = ['Google UK English Male', 'Daniel', 'Arthur', 'Oliver', 'Harry'];
+
+  function loadVoice() {
+    const voices = synth.getVoices();
+    if (!voices.length) return;
+    for (const name of PREF_VOICES) {
+      const v = voices.find(v => v.name === name);
+      if (v) { voice = v; return; }
+    }
+    // Fallback: any en-GB
+    voice = voices.find(v => v.lang === 'en-GB') ||
+            voices.find(v => v.lang.startsWith('en-GB')) ||
+            voices.find(v => v.lang.startsWith('en'));
+  }
+
+  function getReadableText() {
+    // Get the active page
+    const page = document.querySelector('.page.active');
+    if (!page) return '';
+    // Clone and remove nav / button / script elements
+    const clone = page.cloneNode(true);
+    clone.querySelectorAll('button, script, style, .kjv-subtab-bar, nav, .sub-tab-row, .tab-row').forEach(el => el.remove());
+    // Also get active sub-panels if present
+    const text = clone.innerText || clone.textContent || '';
+    // Clean up excessive whitespace
+    return text.replace(/\s{3,}/g, '
+
+').trim();
+  }
+
+  function updateBtn() {
+    const btn = document.getElementById('tts-btn');
+    const tip = document.getElementById('tts-tooltip');
+    if (!btn) return;
+    btn.textContent = speaking ? '🔊' : '🔈';
+    btn.classList.toggle('playing', speaking);
+    if (tip) tip.textContent = speaking ? 'Stop reading' : 'Read aloud';
+  }
+
+  function stop() {
+    synth.cancel();
+    speaking = false;
+    updateBtn();
+  }
+
+  function speak() {
+    const text = getReadableText();
+    if (!text) return;
+    if (!voice) loadVoice();
+    utt = new SpeechSynthesisUtterance(text);
+    if (voice) utt.voice = voice;
+    utt.lang = 'en-GB';
+    utt.rate = 0.88;
+    utt.pitch = 0.92;
+    utt.volume = 1;
+    utt.onend = () => { speaking = false; updateBtn(); };
+    utt.onerror = () => { speaking = false; updateBtn(); };
+    synth.speak(utt);
+    speaking = true;
+    updateBtn();
+  }
+
+  function toggle() {
+    if (speaking) { stop(); } else { speak(); }
+  }
+
+  // Init button with drag support
+  function initBtn() {
+    const btn = document.getElementById('tts-btn');
+    if (!btn) return;
+    btn.textContent = '🔈';
+
+    // ── Drag logic ──
+    let dragging = false, moved = false;
+    let sx, sy, sl, st;
+
+    function startDrag(cx, cy) {
+      const rect = btn.getBoundingClientRect();
+      sx = cx; sy = cy;
+      sl = rect.left; st = rect.top;
+      btn.style.right = 'auto'; btn.style.bottom = 'auto';
+      btn.style.left = sl + 'px'; btn.style.top = st + 'px';
+      dragging = true; moved = false;
+    }
+
+    function doDrag(cx, cy) {
+      if (!dragging) return;
+      const dx = cx - sx, dy = cy - sy;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      const W = window.innerWidth, H = window.innerHeight;
+      const bw = btn.offsetWidth, bh = btn.offsetHeight;
+      btn.style.left = Math.max(8, Math.min(W - bw - 8, sl + dx)) + 'px';
+      btn.style.top  = Math.max(68, Math.min(H - bh - 8, st + dy)) + 'px';
+    }
+
+    function endDrag() {
+      if (!moved) toggle();
+      dragging = false;
+    }
+
+    // Mouse
+    btn.addEventListener('mousedown', e => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', e => { if (dragging) doDrag(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', () => { if (dragging) endDrag(); });
+
+    // Touch
+    btn.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      startDrag(t.clientX, t.clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      doDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchend', () => { if (dragging) endDrag(); });
+  }
+
+  // Wait for voices to load (Chrome fires voiceschanged event)
+  if (synth.onvoiceschanged !== undefined) {
+    synth.onvoiceschanged = loadVoice;
+  }
+  loadVoice();
+
+  document.addEventListener('DOMContentLoaded', initBtn);
+  if (document.readyState !== 'loading') {
+    // DOM already ready
+    setTimeout(initBtn, 0);
+  }
+
+  return { toggle, stop, speak, get speaking() { return speaking; } };
+})();
+
 </script>
 
 </body>
