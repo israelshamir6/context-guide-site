@@ -8386,6 +8386,7 @@ Textures.</em> Examined how African Americans have received and reinterpreted bi
   <button class="sub-tab" onclick="switchKJV('kjv-campaign')" style="background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-size:13px;padding:10px 14px;cursor:pointer;font-family:inherit">🛡️ The 400-Year Campaign</button>
 
   <button class="sub-tab" onclick="switchKJV('kjv-timeline')" style="background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-size:13px;padding:10px 14px;cursor:pointer;font-family:inherit">📅 Translation Timeline</button>
+  <button class="sub-tab" onclick="switchKJV('kjv-omitted')" style="background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-size:13px;padding:10px 14px;cursor:pointer;font-family:inherit">📋 Omitted Verses</button>
   <button class="sub-tab" onclick="switchKJV('kjv-bib')" style="background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-size:13px;padding:10px 14px;cursor:pointer;font-family:inherit">📖 Bibliography</button>
 </div>
 
@@ -9026,6 +9027,363 @@ Textures.</em> Examined how African Americans have received and reinterpreted bi
   <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:8px;padding:16px;margin-top:20px">
     <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">What the Timeline Demonstrates</div>
     <div style="font-size:12px;color:var(--text2);line-height:1.8">From 285 BC to 1611 — 1,896 years — Scripture translation moved toward greater fidelity to the original languages, culminating in the formal-equivalence achievement of the KJV. From 1611 to 1952 — 341 years — the KJV stood essentially alone as English Protestant Scripture. From 1952 to the present — 73 years — at least 15 major competing English translations have been produced, all based on the Westcott-Hort Critical Text, all using dynamic equivalence to varying degrees, all omitting or bracketing Byzantine-tradition passages, and all contributing to the fragmentation Dr. Day described as planned. The KJV is not one option among many — it is the product of 1,896 years of textual development, 47 scholars of exceptional learning, and a seven-year rigorous peer-review process, now surrounded by competitors produced in less time by smaller committees with less combined linguistic depth and explicit commercial motivation.</div>
+  </div>
+</div>
+
+<!-- ── PANEL 8: OMITTED VERSES ──────────────────────────────── -->
+<div id="kjv-omitted" class="kjv-panel" style="display:none">
+  <div style="background:rgba(220,53,69,.07);border:1px solid rgba(220,53,69,.25);border-radius:10px;padding:20px 24px;margin-bottom:28px">
+    <p style="color:var(--text);font-size:15px;line-height:1.7"><strong style="color:#e05c6a">⚠ What Was Removed:</strong> The following verses and passages appear in full in the 1611 King James Bible but are <strong>entirely omitted, bracketed out, or relegated to footnotes</strong> in modern critical translations (NIV, NASB, ESV, RSV, NLT). The removals trace directly to the Westcott &amp; Hort Greek text (1881), which relied primarily on Codex Vaticanus and Codex Sinaiticus — two Alexandrian manuscripts representing less than 1% of surviving Greek manuscripts — over the Textus Receptus underlying the KJV, which reflects 5,200+ Byzantine manuscripts.</p>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+    <button onclick="filterOmit('all')" id="omit-filter-all" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer;font-weight:700">All Books</button>
+    <button onclick="filterOmit('ot')" id="omit-filter-ot" style="background:rgba(255,255,255,.07);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">Old Testament</button>
+    <button onclick="filterOmit('nt')" id="omit-filter-nt" style="background:rgba(255,255,255,.07);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">New Testament</button>
+    <button onclick="filterOmit('entire')" id="omit-filter-entire" style="background:rgba(255,255,255,.07);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">Entire Verses Removed</button>
+    <button onclick="filterOmit('changed')" id="omit-filter-changed" style="background:rgba(255,255,255,.07);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">Key Words Changed</button>
+  </div>
+
+  <script>
+  function filterOmit(type) {
+    document.querySelectorAll('.omit-row').forEach(function(row) {
+      var cat = row.getAttribute('data-cat') || '';
+      var show = (type === 'all') || cat.split(',').includes(type);
+      row.style.display = show ? '' : 'none';
+    });
+    document.querySelectorAll('[id^="omit-filter-"]').forEach(function(btn) {
+      var active = btn.id === 'omit-filter-' + type;
+      btn.style.background = active ? 'var(--accent)' : 'rgba(255,255,255,.07)';
+      btn.style.color = active ? '#000' : 'var(--text2)';
+      btn.style.fontWeight = active ? '700' : 'normal';
+      btn.style.border = active ? 'none' : '1px solid var(--border)';
+    });
+  }
+  </script>
+
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:14px">
+    <thead>
+      <tr style="background:rgba(255,215,0,.1);border-bottom:2px solid rgba(255,215,0,.3)">
+        <th style="padding:10px 12px;text-align:left;color:var(--accent);white-space:nowrap;min-width:110px">Reference</th>
+        <th style="padding:10px 12px;text-align:left;color:var(--accent)">1611 KJV Text</th>
+        <th style="padding:10px 12px;text-align:left;color:#e05c6a;min-width:200px">Modern Translation Status</th>
+      </tr>
+    </thead>
+    <tbody>
+
+<!-- ═══════════════ OLD TESTAMENT ═══════════════ -->
+<tr class="omit-row" data-cat="ot,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📜 OLD TESTAMENT</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Exodus 6:3</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And I appeared unto Abraham, unto Isaac, and unto Jacob, by the name of <strong>God Almighty</strong>, but by my name <strong>JEHOVAH</strong> was I not known to them."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Replace <em>JEHOVAH</em> with <em>LORD</em>, erasing the covenant Name entirely and collapsing the distinction God Himself draws in the text.</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Psalm 8:5</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"For thou hast made him a little lower than the <strong>angels</strong>, and hast crowned him with glory and honour."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Change <em>angels</em> to <em>God</em> or <em>heavenly beings</em>, contradicting Hebrews 2:7 which quotes this verse as <em>angels</em> (KJV).</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Isaiah 7:14</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Behold, a <strong>virgin</strong> shall conceive, and bear a son, and shall call his name Immanuel."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>RSV/NIV footnote:</strong> Change <em>virgin</em> (Heb. <em>almah</em>) to <em>young woman</em>, removing the prophetic basis for the virgin birth of Christ (cf. Matt. 1:23).</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Isaiah 14:12</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"How art thou fallen from heaven, O <strong>Lucifer</strong>, son of the morning! how art thou cut down to the ground..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV/NLT:</strong> Replace <em>Lucifer</em> with <em>morning star</em> or <em>Day Star</em> — the same title given to Christ in Revelation 22:16, creating a doctrinal confusion in the text.</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Daniel 3:25</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...and the form of the fourth is like the <strong>Son of God</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Change to <em>"a son of the gods"</em> (lowercase, plural), eliminating the messianic identification recognized by early Church commentators.</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Proverbs 8:18</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Riches and honour are with me; yea, durable riches and <strong>righteousness</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV:</strong> Change <em>righteousness</em> to <em>prosperity</em>, shifting the wisdom of God from moral virtue to material wealth.</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Jeremiah 29:11</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"For I know the thoughts that I think toward you, saith the LORD, thoughts of <strong>peace</strong>, and not of evil..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NLT:</strong> Change <em>peace</em> to <em>prosperity</em>, altering the spiritual promise into a material one frequently taken out of context in prosperity theology.</td>
+</tr>
+<tr class="omit-row" data-cat="ot,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Micah 5:2</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"But thou, Beth-lehem Ephratah...out of thee shall he come forth unto me that is to be <strong>ruler in Israel</strong>; whose goings forth have been from of old, <strong>from everlasting</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NLT:</strong> Render <em>from everlasting</em> as <em>from ancient times</em>, weakening the eternal pre-existence of the Messiah expressed in the original prophecy.</td>
+</tr>
+
+<!-- ═══════════════ NEW TESTAMENT — MATTHEW ═══════════════ -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 MATTHEW</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Matthew 6:13</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...For <strong>thine is the kingdom, and the power, and the glory, for ever. Amen.</strong>" (closing doxology of the Lord's Prayer)</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV/RSV:</strong> Entirely omit the closing doxology (relegated to footnote), truncating the Lord's Prayer as Christ taught it. Found in the Majority Text and the Didache (c. 100 AD).</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Matthew 12:47</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Then one said unto him, Behold, thy mother and thy brethren stand without, desiring to speak with thee."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Verse entirely omitted (relegated to footnote only). Missing from Vaticanus and Sinaiticus; present in 5,200+ Majority Text manuscripts.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Matthew 17:21</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Howbeit this kind goeth not out but by <strong>prayer and fasting</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes Christ's explicit teaching that some deliverances require fasting. Cf. Mark 9:29 — same verse also removed.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Matthew 18:11</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"For the Son of man is come to save that which was lost."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes a direct statement of Christ's redemptive mission (cf. Luke 19:10 where same statement is retained).</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Matthew 23:14</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Woe unto you, scribes and Pharisees, hypocrites! for ye devour widows' houses, and for a pretence make long prayer: therefore ye shall receive the greater damnation."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes one of Christ's seven woes against hypocritical religious leaders who exploit the vulnerable.</td>
+</tr>
+
+<!-- MARK -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 MARK</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 7:16</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"If any man have ears to hear, let him hear."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. A phrase Christ uses repeatedly to signal a critical teaching (cf. Matt. 11:15; 13:9; Rev. 2:7).</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 9:29</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And he said unto them, This kind can come forth by nothing, but by <strong>prayer and fasting</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove the words <em>and fasting</em>, leaving only "prayer." Eliminates the spiritual discipline of fasting from Christ's explicit instruction on deliverance.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 9:44 &amp; 9:46</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Where their worm dieth not, and the fire is not quenched."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Both verses entirely omitted (only verse 48 retained). Removes two of Christ's three warnings about the permanence of hell's torment in this passage.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 11:26</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"But if ye do not forgive, neither will your Father which is in heaven forgive your trespasses."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes Christ's direct conditional warning on forgiveness (cf. Matt. 6:15 where same teaching is retained).</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 13:33</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Take ye heed, watch and <strong>pray</strong>: for ye know not when the time is."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove the word <em>pray</em>, leaving only "watch and be alert." Eliminates prayer from Christ's eschatological command to watchfulness.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 15:28</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And the scripture was fulfilled, which saith, And he was numbered with the transgressors."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes explicit citation that the crucifixion fulfilled Isaiah 53:12, severing the prophetic connection to the suffering servant.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Mark 16:9–20</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">The last 12 verses of Mark: Christ's appearance to Mary Magdalene, the Great Commission, signs following believers (casting out devils, speaking tongues, handling serpents, healing sick), and the Ascension.</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV/RSV:</strong> Bracketed or given a separate heading labeling them as "not in the earliest manuscripts." Removes the Great Commission as recorded in Mark, signs and wonders following believers, and the Ascension narrative. Present in 600+ Greek manuscripts; cited by Irenaeus (c. 180 AD) and Tatian (c. 170 AD).</td>
+</tr>
+
+<!-- LUKE -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 LUKE</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 4:4</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...It is written, That man shall not live by bread alone, <strong>but by every word of God</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove the phrase <em>but by every word of God</em>. Truncates Christ's quotation of Deuteronomy 8:3, eliminating the doctrinal statement on Scripture's authority from the Lord's own mouth.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 4:8</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...Get thee behind me, Satan: for it is written, Thou shalt worship the Lord thy God, and him only shalt thou serve."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>Get thee behind me, Satan</em> from the temptation account. Present in the Byzantine text; missing from Vaticanus.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 11:2–4</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">Full Lord's Prayer: "Our <strong>Father</strong> which art in heaven, Hallowed be thy name. <strong>Thy kingdom come. Thy will be done, as in heaven, so in earth.</strong>..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Shorten the prayer significantly — remove "which art in heaven," "Thy will be done as in heaven so in earth," and "but deliver us from evil," altering what Christ actually taught His disciples to pray.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 17:36</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Two men shall be in the field; the one shall be taken, and the other left."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Third example in Christ's end-times discourse of one taken and one left — the only field example in Luke — removed entirely.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 22:43–44</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And there appeared an angel unto him from heaven, strengthening him. And being in an agony he prayed more earnestly: and his sweat was as it were great drops of blood falling down to the ground."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Bracketed or footnoted as possibly not original. Removes the account of the angel strengthening Christ in Gethsemane and the sweat as blood — a passage attesting the reality of Christ's suffering and the angelic ministry to Him.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 23:17</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"(For of necessity he must release one unto them at the feast.)"</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes the explanatory note about the Passover prisoner-release custom, making Pilate's offer in the surrounding verses contextually abrupt.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Luke 23:34a</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Then said Jesus, <strong>Father, forgive them; for they know not what they do.</strong>"</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV footnote:</strong> Bracketed as uncertain in critical text. One of the most profound statements of Christ from the cross, missing from Vaticanus and a few other Alexandrian manuscripts. Present in the vast majority of Greek manuscripts and cited by Origen (c. 230 AD).</td>
+</tr>
+
+<!-- JOHN -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 JOHN</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">John 5:3b–4</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...waiting for the moving of the water. For an angel went down at a certain season into the pool, and troubled the water: whosoever then first after the troubling of the water stepped in was made whole of whatsoever disease he had."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Omit or bracket. Removes the supernatural explanation for the pool of Bethesda — the angelic troubling of the water — which is the entire basis for why the lame man was lying there and what he was waiting for.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">John 6:47</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Verily, verily, I say unto you, He that believeth <strong>on me</strong> hath everlasting life."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>on me</em>, leaving only "He that believeth hath everlasting life" — detaching faith from its object, Jesus Christ.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">John 7:53–8:11</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">The account of the woman taken in adultery: "He that is without sin among you, let him first cast a stone at her...Neither do I condemn thee: go, and sin no more."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire 12-verse passage bracketed or set apart with disclaimers as "not found in earliest manuscripts." Removes the most well-known account of Christ's mercy and the command to "go and sin no more." Cited by Papias (c. 125 AD) and present in the Didascalia Apostolorum (c. 230 AD).</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">John 9:35</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...Dost thou believe on the <strong>Son of God</strong>?"</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Change <em>Son of God</em> to <em>Son of Man</em>, altering Christ's direct claim to divinity into a title of His humanity.</td>
+</tr>
+
+<!-- ACTS -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 ACTS</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Acts 8:37</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And Philip said, If thou believest with all thine heart, thou mayest. And he answered and said, I believe that Jesus Christ is the Son of God."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes the explicit doctrinal requirement for baptism — belief in Jesus Christ as the Son of God — leaving the baptism in verse 38 with no stated condition. Present in many Greek manuscripts and cited by Irenaeus (c. 180 AD) and Cyprian (c. 250 AD).</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Acts 15:34</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"Notwithstanding it pleased Silas to abide there still."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Creates a logical gap — verse 33 says Silas returned to Jerusalem, but verse 40 says Paul chose Silas. The omission removes the explanatory verse that Silas had actually stayed.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Acts 24:6b–8a</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...and would have judged according to our law. But the chief captain Lysias came upon us, and with great violence took him away out of our hands, Commanding his accusers to come unto thee..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Portion omitted, collapsing the narrative detail of Tertullus's accusation before Felix and removing context about Lysias's role.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Acts 28:29</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And when he had said these words, the Jews departed, and had great reasoning among themselves."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes the narrative conclusion showing the Jews' response to Paul's discourse — the departure and continued debate — leaving Paul's statement in verse 28 hanging without resolution.</td>
+</tr>
+
+<!-- ROMANS -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 ROMANS</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Romans 11:6b</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...But if it be of works, then is it no more grace: otherwise work is no more work."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Second clause omitted. Removes the logical counterpart that defines grace by contrasting it with works in Paul's argument on election.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Romans 16:24</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"The grace of our Lord Jesus Christ be with you all. Amen."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Entire verse omitted. Removes a full apostolic benediction invoking the name of the Lord Jesus Christ at the close of Romans.</td>
+</tr>
+
+<!-- 1 CORINTHIANS -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 1 CORINTHIANS</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">1 Cor. 7:39</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...she is at liberty to be married to whom she will; only <strong>in the Lord</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NASB:</strong> Omit or soften <em>in the Lord</em>. Removes Paul's instruction that a widow must remarry within the faith.</td>
+</tr>
+
+<!-- EPHESIANS -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 EPHESIANS</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Ephesians 3:9</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...the fellowship of the mystery, which from the beginning of the world hath been hid in God, <strong>who created all things by Jesus Christ</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove the phrase <em>by Jesus Christ</em>, eliminating the explicit statement of Christ's role in creation from Ephesians.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Ephesians 3:14</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"For this cause I bow my knees unto the Father <strong>of our Lord Jesus Christ</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>of our Lord Jesus Christ</em>. Paul's prayer is addressed to "the Father" with no further identification, obscuring the Trinitarian specificity of the passage.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Ephesians 5:9</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"(For the fruit of the <strong>Spirit</strong> is in all goodness and righteousness and truth;)"</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Change <em>Spirit</em> to <em>light</em>, altering the source of the fruit from the Holy Spirit to the metaphorical light of verse 8.</td>
+</tr>
+
+<!-- COLOSSIANS -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 COLOSSIANS</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Colossians 1:2</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...Grace be unto you, and peace, from God our Father <strong>and the Lord Jesus Christ</strong>."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>and the Lord Jesus Christ</em>. The apostolic greeting's Trinitarian identification of both the Father and Christ as the source of grace is truncated.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Colossians 1:14</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"In whom we have redemption <strong>through his blood</strong>, even the forgiveness of sins."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>through his blood</em>. The specific atonement language identifying redemption as blood-based is removed from the verse.</td>
+</tr>
+
+<!-- 1 TIMOTHY -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 1 TIMOTHY</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">1 Timothy 3:16</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...God was manifest in the flesh, justified in the Spirit, seen of angels, preached unto the Gentiles..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Replace <em>God</em> with <em>He</em>, eliminating the explicit statement of the Incarnation ("God was manifest in the flesh") — one of the clearest Trinitarian statements in the NT epistles.</td>
+</tr>
+
+<!-- 1 JOHN -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 1 JOHN</td>
+</tr>
+<tr class="omit-row" data-cat="nt,entire">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">1 John 5:7</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"For there are three that bear record <strong>in heaven, the Father, the Word, and the Holy Ghost: and these three are one.</strong>"</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> The Comma Johanneum — entirely omitted. Removes the most explicit Trinitarian statement in Scripture. Present in the Latin Vulgate (c. 400 AD), cited by Tertullian (c. 210 AD), Cyprian (c. 250 AD), Priscillian (c. 380 AD), and in numerous Greek manuscripts. Erasmus initially omitted it; included it in his 1522 third edition when a Greek manuscript was provided; it entered the Textus Receptus and thus the 1611 KJV.</td>
+</tr>
+
+<!-- REVELATION -->
+<tr class="omit-row" data-cat="nt,changed" style="background:rgba(255,200,0,.04)">
+  <td colspan="3" style="padding:12px 12px 4px;font-weight:700;color:var(--accent);letter-spacing:.05em;border-top:1px solid var(--border)">📖 REVELATION</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Revelation 1:11</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"...I am <strong>Alpha and Omega, the first and the last</strong>: and, What thou seest, write in a book..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>I am Alpha and Omega, the first and the last</em> from verse 11, retaining it only in verse 8. Reduces the double witness of Christ's eternal identity.</td>
+</tr>
+<tr class="omit-row" data-cat="nt,changed">
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#ffd700;font-weight:600;white-space:nowrap;vertical-align:top">Revelation 21:24</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);line-height:1.6;vertical-align:top">"And the nations of them <strong>which are saved</strong> shall walk in the light of it..."</td>
+  <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);color:#e05c6a;vertical-align:top"><strong>NIV/NASB/ESV:</strong> Remove <em>which are saved</em>. The qualifier specifying that only the saved nations walk in the New Jerusalem's light is omitted, broadening the passage beyond its intended scope.</td>
+</tr>
+
+    </tbody>
+  </table>
+  </div>
+
+  <div style="margin-top:32px;background:rgba(30,30,50,.5);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:20px 24px">
+    <h3 style="color:var(--accent);margin:0 0 12px">📌 The Pattern</h3>
+    <p style="color:var(--text);font-size:14px;line-height:1.7;margin:0 0 10px">These removals are not random. Across all categories they cluster around five doctrinal areas: <strong>(1) the deity of Christ</strong> — verses establishing Jesus as God manifest in flesh; <strong>(2) the blood atonement</strong> — references to Christ's blood as the basis of redemption; <strong>(3) spiritual discipline</strong> — prayer, fasting, and the reality of demonic activity; <strong>(4) the reality of hell</strong> — verses affirming eternal consequence; and <strong>(5) the specific Name</strong> — passages identifying God by His covenant Name, JEHOVAH or LORD.</p>
+    <p style="color:var(--text);font-size:14px;line-height:1.7;margin:0">The authority behind these changes is the 1881 Westcott &amp; Hort Greek critical text, which departed from 5,200+ Byzantine manuscripts in favour of two Alexandrian manuscripts — Codex Vaticanus (kept in the Vatican Library, never accessible to Protestant translators until the 19th century) and Codex Sinaiticus (discovered at St. Catherine's Monastery in 1844 by Tischendorf, who initially took it without permission). Every modern critical translation — NIV (1973/1984/2011), NASB (1971/1995/2020), ESV (2001/2016), RSV (1952), NLT (1996/2004), CSB (2017) — rests on this Alexandrian foundation.</p>
+  </div>
+
+  <div style="margin-top:20px;background:rgba(220,53,69,.07);border:1px solid rgba(220,53,69,.25);border-radius:10px;padding:16px 20px">
+    <p style="color:#e05c6a;font-size:13px;line-height:1.7;margin:0"><strong>Source note:</strong> Verse listings compiled from: Dr. Jack Moorman, <em>Missing in Modern Bibles</em> (1981); Dr. Rocco Badenhorst, <em>The Word of God on Trial</em>; Thomas Holland, <em>Crowned with Glory</em> (2000); Floyd Nolen Jones, <em>Which Version Is the Bible?</em> (1999); and the Wikipedia article "List of New Testament verses not included in modern English translations," cross-referenced against the Greek Textus Receptus (Scrivener 1894 edition) and the Nestle-Aland Novum Testamentum Graece 28th edition critical apparatus.</p>
   </div>
 </div>
 
