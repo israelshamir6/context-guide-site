@@ -328,7 +328,18 @@ hr{border:none;border-top:1px solid var(--border);margin:24px 0}
 .dl-progress.show{display:block}
 
 </style>
-<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
+<script>
+// Load ResponsiveVoice with fallback
+(function(){
+  var s = document.createElement('script');
+  s.src = 'https://code.responsivevoice.org/responsivevoice.js?key=FREE';
+  s.onerror = function() {
+    // ResponsiveVoice blocked or unavailable — Web Speech API fallback active
+    console.log('ResponsiveVoice unavailable, using Web Speech API');
+  };
+  document.head.appendChild(s);
+})();
+</script>
 </head>
 <body>
 
@@ -10647,18 +10658,29 @@ window.TTS = (function() {
     if (activePlayBtn===btn) { stopAll(); return; }
     startUI(btn, bar);
     const onEnd = () => stopUI();
-    if (window.responsiveVoice) {
+    if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
       responsiveVoice.speak(text, VOICE, {rate:0.9,pitch:0.9,volume:1,onend:onEnd,onerror:onEnd});
     } else {
+      // Web Speech API — UK English Male fallback
       const synth=window.speechSynthesis;
+      if(synth.speaking) synth.cancel();
       const utt=new SpeechSynthesisUtterance(text);
-      utt.lang='en-GB'; utt.rate=0.88; utt.pitch=0.92;
-      const pref=['Google UK English Male','Daniel','Arthur','Oliver'];
-      const voices=synth.getVoices();
-      for(const n of pref){const v=voices.find(x=>x.name===n);if(v){utt.voice=v;break;}}
-      if(!utt.voice)utt.voice=voices.find(x=>x.lang==='en-GB')||null;
+      utt.lang='en-GB'; utt.rate=0.88; utt.pitch=0.92; utt.volume=1;
+      function pickVoice(){
+        const pref=['Google UK English Male','Daniel','Arthur','Oliver','Harry','James'];
+        const voices=synth.getVoices();
+        for(const n of pref){const v=voices.find(x=>x.name===n);if(v){utt.voice=v;return;}}
+        const gb=voices.find(x=>x.lang==='en-GB')||voices.find(x=>x.lang.startsWith('en-GB'));
+        if(gb) utt.voice=gb;
+      }
+      pickVoice();
       utt.onend=utt.onerror=onEnd;
-      synth.speak(utt);
+      // Chrome sometimes needs voices to load async
+      if(synth.getVoices().length===0){
+        synth.onvoiceschanged=()=>{pickVoice();synth.speak(utt);};
+      } else {
+        synth.speak(utt);
+      }
     }
   }
 
@@ -10867,6 +10889,10 @@ window.TTS = (function() {
 })();
 
 </script>
+
+<!-- ── GLOBAL TTS FLOAT BUTTON ── -->
+<button id="tts-btn" title="Read entire page aloud" aria-label="Read page aloud" style="position:fixed;bottom:28px;right:24px;z-index:9999;width:52px;height:52px;border-radius:50%;background:var(--bg2,#161b22);border:2px solid rgba(255,255,255,.2);color:#e6edf3;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.5);touch-action:none;user-select:none">🔈</button>
+<div id="tts-tooltip" style="position:fixed;bottom:88px;right:24px;z-index:10000;background:#161b22;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;font-size:12px;color:#8b949e;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s">Read entire page</div>
 
 </body>
 </html>
