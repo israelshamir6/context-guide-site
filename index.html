@@ -10653,34 +10653,94 @@ window.TTS = (function() {
     }
   }
 
+  // Pre-warm voice list on page load so first click is instant
+  (function warmVoices(){
+    if(!window.speechSynthesis) return;
+    const v=speechSynthesis.getVoices();
+    if(!v.length) speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};
+  })();
+
+  // Male UK English voice priority — Chrome, Edge, Windows, macOS
+  const MALE_UK_PREF=[
+    'Google UK English Male',            // Chrome (best match)
+    'Microsoft Ryan Online (Natural)',   // Edge / Windows 11 Neural
+    'Microsoft George Online (Natural)', // Edge / Windows Neural
+    'Microsoft George',                  // Windows offline
+    'Daniel',                            // macOS
+    'Arthur',                            // macOS Monterey+
+    'Oliver',                            // macOS
+    'Harry',                             // macOS
+    'James',                             // macOS older
+    'Microsoft David',                   // US male fallback (not female)
+    'Microsoft Mark',                    // US male fallback
+  ];
+
+  function getBestMaleVoice(){
+    const voices=window.speechSynthesis.getVoices();
+    // Exact name match
+    for(const n of MALE_UK_PREF){
+      const v=voices.find(x=>x.name===n);
+      if(v) return v;
+    }
+    // Any en-GB male-named voice
+    const gb=voices.filter(x=>x.lang==='en-GB'||x.lang.startsWith('en-GB'));
+    const gbM=gb.find(x=>/ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name));
+    if(gbM) return gbM;
+    if(gb.length) return gb[0];
+    // Any en male-ish voice
+    return voices.find(x=>/david|mark|ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name))||null;
+  }
+
+  function speakChunked(text, onEnd){
+    const synth=window.speechSynthesis;
+    if(synth.speaking||synth.pending) synth.cancel();
+    // Chunk text: Chrome hangs on very long utterances
+    const MAX=480;
+    const words=text.split(' ');
+    const chunks=[];
+    let buf='';
+    for(const w of words){
+      const candidate=(buf?buf+' ':'')+w;
+      if(candidate.length>MAX&&buf){chunks.push(buf);buf=w;}
+      else buf=candidate;
+    }
+    if(buf) chunks.push(buf);
+    if(!chunks.length){onEnd();return;}
+    let idx=0;
+    const voice=getBestMaleVoice();
+    function next(){
+      if(idx>=chunks.length){onEnd();return;}
+      const utt=new SpeechSynthesisUtterance(chunks[idx++]);
+      utt.lang='en-GB'; utt.rate=0.88; utt.pitch=0.9; utt.volume=1;
+      if(voice) utt.voice=voice;
+      utt.onend=next;
+      utt.onerror=function(){if(idx<chunks.length)next();else onEnd();};
+      synth.speak(utt);
+    }
+    next();
+  }
+
   function speak(text, btn, bar) {
     if (!text) return;
     if (activePlayBtn===btn) { stopAll(); return; }
     startUI(btn, bar);
     const onEnd = () => stopUI();
-    if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
-      responsiveVoice.speak(text, VOICE, {rate:0.9,pitch:0.9,volume:1,onend:onEnd,onerror:onEnd});
+    const synth=window.speechSynthesis;
+
+    function doSpeak(){
+      speakChunked(text, onEnd);
+    }
+
+    // Ensure voices loaded — fix race condition with event + polling backup
+    if(synth.getVoices().length>0){
+      doSpeak();
     } else {
-      // Web Speech API — UK English Male fallback
-      const synth=window.speechSynthesis;
-      if(synth.speaking) synth.cancel();
-      const utt=new SpeechSynthesisUtterance(text);
-      utt.lang='en-GB'; utt.rate=0.88; utt.pitch=0.92; utt.volume=1;
-      function pickVoice(){
-        const pref=['Google UK English Male','Daniel','Arthur','Oliver','Harry','James'];
-        const voices=synth.getVoices();
-        for(const n of pref){const v=voices.find(x=>x.name===n);if(v){utt.voice=v;return;}}
-        const gb=voices.find(x=>x.lang==='en-GB')||voices.find(x=>x.lang.startsWith('en-GB'));
-        if(gb) utt.voice=gb;
-      }
-      pickVoice();
-      utt.onend=utt.onerror=onEnd;
-      // Chrome sometimes needs voices to load async
-      if(synth.getVoices().length===0){
-        synth.onvoiceschanged=()=>{pickVoice();synth.speak(utt);};
-      } else {
-        synth.speak(utt);
-      }
+      let fired=false;
+      function go(){if(fired)return;fired=true;synth.onvoiceschanged=null;clearInterval(poll);doSpeak();}
+      synth.onvoiceschanged=go;
+      // Polling backup: onvoiceschanged may have already fired before we registered
+      const poll=setInterval(function(){if(synth.getVoices().length>0)go();},80);
+      setTimeout(function(){clearInterval(poll);if(!fired){fired=true;doSpeak();}},3000);
     }
   }
 
