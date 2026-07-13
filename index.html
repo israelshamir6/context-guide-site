@@ -9906,7 +9906,6 @@ function switchKJV(id) {
     t.style.color = isActive ? 'var(--text)' : 'var(--text2)';
     t.style.fontWeight = isActive ? '600' : 'normal';
   });
-  setTimeout(() => { if (window.TTS) TTS.inject(); }, 120);
 }
 </script>
 
@@ -9924,7 +9923,6 @@ function showPage(id, btn) {
   window.scrollTo({top: 0, behavior: 'smooth'});
   closeHam();
   if (window.TTS) TTS.stopAll();
-  setTimeout(() => { if (window.TTS) TTS.inject(); }, 120);
 }
 
 // --- CATEGORY TABS ---
@@ -9967,6 +9965,8 @@ function toggleCtx(id) {
     body.classList.add('open');
     chev.classList.add('open');
     header.classList.add('open');
+    // Inject audio bars into newly opened accordion body
+    setTimeout(() => { if (window.TTS) TTS.injectEl(body); }, 60);
   }
 }
 
@@ -10559,54 +10559,65 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ═══════════════════════════════════════════════════════
-// AUDIO ENGINE — ResponsiveVoice UK English Male + fallback
+// AUDIO ENGINE v3 — full-site, every element, UK English Male
 // ═══════════════════════════════════════════════════════
 window.TTS = (function() {
   const VOICE = 'UK English Male';
   let activePlayBtn = null;
-  let activeBar = null;
+  let activeBar     = null;
 
-  /* ── Helpers ── */
+  /* ── Text extraction — no images, no UI chrome ── */
   function getTextOf(el) {
     const clone = el.cloneNode(true);
-    clone.querySelectorAll('img, .audio-bar, .ab-mini, .ab-ham, button, script, style, nav, .ham-panel, .dl-modal, canvas, svg, [aria-hidden]').forEach(x => x.remove());
-    return (clone.innerText || clone.textContent || '').replace(/\s{3,}/g, '\n\n').trim();
+    clone.querySelectorAll(
+      'img,canvas,svg,picture,video,audio,' +
+      '.audio-bar,.ab-mini,.ab-ham,.ab-stop-btn,' +
+      'button,script,style,nav,' +
+      '.ham-panel,.dl-modal,.cat-tabs,' +
+      '.kjv-subtab-bar,.sub-tab-row,.tab-row,' +
+      '[aria-hidden="true"]'
+    ).forEach(x => x.remove());
+    return (clone.innerText || clone.textContent || '').replace(/\s{3,}/g,'\n\n').trim();
   }
 
   function getHeadingBlock(h) {
     const lvl = parseInt(h.tagName[1]);
-    let text = (h.innerText || '') + '\n\n';
+    const clone = h.cloneNode(true);
+    clone.querySelectorAll('.ab-mini,.ab-ham,button').forEach(x=>x.remove());
+    let text = (clone.innerText||'') + '\n\n';
     let sib = h.nextElementSibling;
     while (sib) {
-      const tag = sib.tagName || '';
+      const tag = sib.tagName||'';
       if (/^H[1-6]$/.test(tag) && parseInt(tag[1]) <= lvl) break;
       if (!sib.classList.contains('audio-bar')) {
         const c = sib.cloneNode(true);
-        c.querySelectorAll('img,.audio-bar,.ab-mini,.ab-ham,button,script,canvas,svg').forEach(x=>x.remove());
-        text += (c.innerText || c.textContent || '') + '\n\n';
+        c.querySelectorAll('img,canvas,svg,.audio-bar,.ab-mini,button,script').forEach(x=>x.remove());
+        text += (c.innerText||c.textContent||'') + '\n\n';
       }
       sib = sib.nextElementSibling;
     }
-    return text.replace(/\s{3,}/g, '\n\n').trim();
+    return text.replace(/\s{3,}/g,'\n\n').trim();
   }
 
-  /* ── Playback ── */
+  /* ── Playback UI ── */
   function stopUI() {
     if (activePlayBtn) {
-      activePlayBtn.innerHTML = '▶ Read';
+      if (activePlayBtn.classList.contains('ab-play-btn')) {
+        activePlayBtn.innerHTML='▶ Read';
+      } else {
+        activePlayBtn.textContent='🔈';
+      }
       activePlayBtn.classList.remove('ab-active');
     }
     if (activeBar) {
-      const w = activeBar.querySelector('.ab-waves');
-      const s = activeBar.querySelector('.ab-stop-btn');
-      if (w) w.classList.remove('ab-vis');
-      if (s) s.classList.remove('ab-vis');
+      const w=activeBar.querySelector('.ab-waves');
+      const s=activeBar.querySelector('.ab-stop-btn');
+      if(w)w.classList.remove('ab-vis');
+      if(s)s.classList.remove('ab-vis');
     }
-    activePlayBtn = null;
-    activeBar = null;
-    // update global btn
-    const gb = document.getElementById('tts-btn');
-    if (gb) { gb.textContent = '🔈'; gb.classList.remove('playing'); }
+    activePlayBtn=null; activeBar=null;
+    const gb=document.getElementById('tts-btn');
+    if(gb){gb.textContent='🔈';gb.classList.remove('playing');}
   }
 
   function stopAll() {
@@ -10615,226 +10626,232 @@ window.TTS = (function() {
     stopUI();
   }
 
-  function startUI(playBtn, bar) {
+  function startUI(btn, bar) {
     stopAll();
-    activePlayBtn = playBtn;
-    activeBar = bar;
-    if (playBtn) { playBtn.innerHTML = '▶ Reading…'; playBtn.classList.add('ab-active'); }
+    activePlayBtn=btn; activeBar=bar;
+    if (btn) {
+      if (btn.classList.contains('ab-play-btn')) btn.innerHTML='▶ Reading…';
+      else btn.textContent='🔊';
+      btn.classList.add('ab-active');
+    }
     if (bar) {
-      const w = bar.querySelector('.ab-waves');
-      const s = bar.querySelector('.ab-stop-btn');
-      if (w) w.classList.add('ab-vis');
-      if (s) s.classList.add('ab-vis');
+      const w=bar.querySelector('.ab-waves');
+      const s=bar.querySelector('.ab-stop-btn');
+      if(w)w.classList.add('ab-vis');
+      if(s)s.classList.add('ab-vis');
     }
   }
 
-  function speak(text, playBtn, bar) {
+  function speak(text, btn, bar) {
     if (!text) return;
-    if (activePlayBtn === playBtn) { stopAll(); return; }
-    startUI(playBtn, bar);
-
-    const onEnd = () => { stopUI(); };
-
+    if (activePlayBtn===btn) { stopAll(); return; }
+    startUI(btn, bar);
+    const onEnd = () => stopUI();
     if (window.responsiveVoice) {
-      responsiveVoice.speak(text, VOICE, {
-        rate: 0.9, pitch: 0.9, volume: 1,
-        onend: onEnd, onerror: onEnd
-      });
+      responsiveVoice.speak(text, VOICE, {rate:0.9,pitch:0.9,volume:1,onend:onEnd,onerror:onEnd});
     } else {
-      // Web Speech API fallback
-      const synth = window.speechSynthesis;
-      const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'en-GB'; utt.rate = 0.88; utt.pitch = 0.92;
-      const voices = synth.getVoices();
-      const pref = ['Google UK English Male','Daniel','Arthur','Oliver'];
-      for (const n of pref) {
-        const v = voices.find(x => x.name === n); if (v) { utt.voice = v; break; }
-      }
-      if (!utt.voice) utt.voice = voices.find(x => x.lang === 'en-GB') || null;
-      utt.onend = utt.onerror = onEnd;
+      const synth=window.speechSynthesis;
+      const utt=new SpeechSynthesisUtterance(text);
+      utt.lang='en-GB'; utt.rate=0.88; utt.pitch=0.92;
+      const pref=['Google UK English Male','Daniel','Arthur','Oliver'];
+      const voices=synth.getVoices();
+      for(const n of pref){const v=voices.find(x=>x.name===n);if(v){utt.voice=v;break;}}
+      if(!utt.voice)utt.voice=voices.find(x=>x.lang==='en-GB')||null;
+      utt.onend=utt.onerror=onEnd;
       synth.speak(utt);
     }
   }
 
-  /* ── Bar / button factories ── */
-  function makeBar(el, label, position) {
-    // position: 'bottom' (default) or 'top'
-    const bar = document.createElement('div');
-    bar.className = 'audio-bar' + (position === 'top' ? ' ab-top' : '');
-    bar.innerHTML =
-      '<button class="ab-play-btn">▶ Read</button>' +
-      '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>' +
-      '<div class="ab-lbl">' + (label || '').replace(/</g,'&lt;').slice(0,50) + '</div>' +
+  /* ── Factory functions ── */
+  function makeBar(el, lbl, top) {
+    const bar=document.createElement('div');
+    bar.className='audio-bar'+(top?' ab-top':'');
+    bar.innerHTML=
+      '<button class="ab-play-btn">▶ Read</button>'+
+      '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '<div class="ab-lbl">'+(lbl||'').replace(/</g,'&lt;').slice(0,48)+'</div>'+
       '<button class="ab-stop-btn" title="Stop">■</button>';
-
-    const playBtn  = bar.querySelector('.ab-play-btn');
-    const stopBtn  = bar.querySelector('.ab-stop-btn');
-    let   cachedText = null;
-
-    playBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (!cachedText) cachedText = getTextOf(el);
-      speak(cachedText, playBtn, bar);
-    });
-    stopBtn.addEventListener('click', e => { e.stopPropagation(); stopAll(); });
+    const pb=bar.querySelector('.ab-play-btn');
+    const sb=bar.querySelector('.ab-stop-btn');
+    let cache=null;
+    pb.addEventListener('click',e=>{e.stopPropagation();if(!cache)cache=getTextOf(el);speak(cache,pb,bar);});
+    sb.addEventListener('click',e=>{e.stopPropagation();stopAll();});
     return bar;
   }
 
-  function makeInlineBar(text, label) {
-    const bar = document.createElement('div');
-    bar.className = 'audio-bar ab-inline';
-    bar.innerHTML =
-      '<button class="ab-play-btn">▶ Read</button>' +
-      '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>' +
-      '<div class="ab-lbl">' + (label || '').replace(/</g,'&lt;').slice(0,50) + '</div>' +
-      '<button class="ab-stop-btn" title="Stop">■</button>';
-    const playBtn = bar.querySelector('.ab-play-btn');
-    const stopBtn = bar.querySelector('.ab-stop-btn');
-    playBtn.addEventListener('click', e => { e.stopPropagation(); speak(text, playBtn, bar); });
-    stopBtn.addEventListener('click', e => { e.stopPropagation(); stopAll(); });
-    return bar;
-  }
-
-  function makeMiniBtn(text) {
-    const btn = document.createElement('button');
-    btn.className = 'ab-mini';
-    btn.textContent = '🔈';
-    btn.title = 'Read aloud';
-    btn.addEventListener('click', e => {
+  function makeMini(textOrFn) {
+    const btn=document.createElement('button');
+    btn.className='ab-mini'; btn.textContent='🔈'; btn.title='Read aloud';
+    btn.addEventListener('click',e=>{
       e.stopPropagation();
-      if (activePlayBtn === btn) { stopAll(); return; }
-      startUI(btn, null);
-      speak(text, btn, null);
+      const text=typeof textOrFn==='function'?textOrFn():textOrFn;
+      speak(text,btn,null);
     });
     return btn;
   }
 
-  function makeHamBtn(text) {
-    const btn = document.createElement('button');
-    btn.className = 'ab-ham';
-    btn.textContent = '🔈';
-    btn.title = 'Read';
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (activePlayBtn === btn) { stopAll(); return; }
-      startUI(btn, null);
-      speak(text, btn, null);
-    });
+  function makeHam(text) {
+    const btn=document.createElement('button');
+    btn.className='ab-ham'; btn.textContent='🔈'; btn.title='Read';
+    btn.addEventListener('click',e=>{e.stopPropagation();speak(text,btn,null);});
     return btn;
   }
 
-  /* ── Auto-injection ── */
+  /* ── Core injection — can be called on any container ── */
+  function injectEl(root) {
+    const SKIP = el => el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,#tts-btn,#tts-tooltip');
+
+    // ctx-card headers (forms of context accordion) — mini speaker before chevron
+    root.querySelectorAll('.ctx-card').forEach(card=>{
+      if(card.dataset.ab)return;
+      card.dataset.ab='1';
+      const header=card.querySelector('.ctx-card-header');
+      const chevron=card.querySelector('.ctx-chevron');
+      if(header && !header.querySelector('.ab-mini')){
+        const mini=makeMini(()=>getTextOf(card));
+        mini.style.cssText='font-size:14px;opacity:.45;margin-left:auto;margin-right:8px;flex-shrink:0';
+        if(chevron) header.insertBefore(mini,chevron);
+        else header.appendChild(mini);
+      }
+    });
+
+    // ctx-section (Overview, How Determined, etc.)
+    root.querySelectorAll('.ctx-section').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      el.dataset.ab='1';
+      const lbl=(el.querySelector('.ctx-section-label')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    // example-box and misapp-box
+    root.querySelectorAll('.example-box,.misapp-box').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      el.dataset.ab='1';
+      const lbl=(el.querySelector('.ex-label,.mis-label')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    // scholar-cite blocks
+    root.querySelectorAll('.scholar-cite').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      el.dataset.ab='1';
+      el.appendChild(makeBar(el,'Scholar citation'));
+    });
+
+    // omit-row (omitted verses)
+    root.querySelectorAll('.omit-row').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      el.dataset.ab='1';
+      el.appendChild(makeBar(el,''));
+    });
+
+    // All card types
+    const CARD_SEL='.card,.lexicon-card,.scholar-card,.home-card,.lex-card,.glos-card,'+
+                   '.principle-card,.error-card,.argument-card,.stat-box,.verdict-box,'+
+                   '.scripture-block,.quote-block,.cat-header-block,.card-sm,[class$="-card"]';
+    root.querySelectorAll(CARD_SEL).forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      // skip if it's inside a ctx-section (already handled)
+      if(el.closest('.ctx-section,.ctx-body'))return;
+      el.dataset.ab='1';
+      const h=el.querySelector('h2,h3,h4,h5,strong,.card-title');
+      const lbl=h?(h.innerText||'').slice(0,48):'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    // bib-entry
+    root.querySelectorAll('.bib-entry').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      el.dataset.ab='1';
+      el.appendChild(makeBar(el,''));
+    });
+
+    // KJV panels — top bar
+    root.querySelectorAll('.kjv-panel').forEach(panel=>{
+      if(panel.dataset.ab)return;
+      panel.dataset.ab='1';
+      panel.insertBefore(makeBar(panel,'▶ Read entire section',true),panel.firstChild);
+    });
+
+    // cat-panel, sub-panel — top bar
+    root.querySelectorAll('.cat-panel,.sub-panel,.content-panel').forEach(panel=>{
+      if(panel.dataset.ab)return;
+      panel.dataset.ab='1';
+      panel.insertBefore(makeBar(panel,'▶ Read entire section',true),panel.firstChild);
+    });
+
+    // Headings h2/h3/h4 not inside cards or tab-bars — inline mini
+    root.querySelectorAll('h2,h3,h4').forEach(h=>{
+      if(h.dataset.ab||SKIP(h))return;
+      if(h.closest('.ctx-card-header,.sub-tab-row,.kjv-subtab-bar,.tab-row,.cat-tabs,.audio-bar'))return;
+      h.dataset.ab='1';
+      h.appendChild(makeMini(()=>getHeadingBlock(h)));
+    });
+
+    // h5 inline mini
+    root.querySelectorAll('h5').forEach(h=>{
+      if(h.dataset.ab||SKIP(h))return;
+      if(h.closest('.audio-bar,.cat-tabs'))return;
+      h.dataset.ab='1';
+      h.appendChild(makeMini((h.innerText||'').trim()));
+    });
+
+    // Bordered/shaded section divs (inline-styled blocks)
+    root.querySelectorAll('.page > .container > div, .page > .container > section,'+
+                          '.kjv-panel > div[style], .cat-panel > div[style]').forEach(div=>{
+      if(div.dataset.ab||SKIP(div))return;
+      if(div.matches(CARD_SEL)||div.classList.contains('cat-panel')||
+         div.classList.contains('kjv-panel')||div.classList.contains('audio-bar')) return;
+      if(div.querySelector('.ctx-card,.card,.lexicon-card,.audio-bar')) return;
+      const s=div.getAttribute('style')||'';
+      if(!s.includes('border')&&!s.includes('background')) return;
+      if((div.innerText||'').trim().length<25) return;
+      div.dataset.ab='1';
+      const h=div.querySelector('h2,h3,h4,h5,strong');
+      div.appendChild(makeBar(div,h?(h.innerText||'').slice(0,48):''));
+    });
+
+    // Hamburger menu items
+    root.querySelectorAll('.ham-item').forEach(item=>{
+      if(item.dataset.ab)return;
+      item.dataset.ab='1';
+      const text=(item.innerText||'').trim();
+      if(!text)return;
+      item.style.display='flex'; item.style.alignItems='center';
+      item.style.justifyContent='space-between';
+      item.appendChild(makeHam(text));
+    });
+
+    // Dropdown items
+    root.querySelectorAll('.dropdown-item').forEach(item=>{
+      if(item.dataset.ab)return;
+      item.dataset.ab='1';
+      const text=(item.innerText||'').trim();
+      if(!text)return;
+      item.style.display='flex'; item.style.alignItems='center';
+      item.style.justifyContent='space-between';
+      item.appendChild(makeHam(text));
+    });
+  }
+
+  /* ── Full-site injection — runs on entire document ── */
   function inject() {
-    // Clear previous injections
-    document.querySelectorAll('.audio-bar:not([data-static]), .ab-mini, .ab-ham').forEach(el => el.remove());
-    document.querySelectorAll('[data-ab]').forEach(el => delete el.dataset.ab);
-
-    const skip = el => el.closest('.ham-panel,#topnav,.dl-modal,.audio-bar,#tts-btn');
-
-    // 1. Cards of all types
-    const CARDS = '.card,.lexicon-card,.scholar-card,.type-card,.context-card,.bib-card,.ref-card,.term-card,.cat-card,.lex-card,.example-card,.lexicon-card,[class$="-card"],[class*=" -card"]';
-    document.querySelectorAll(CARDS).forEach(card => {
-      if (card.dataset.ab || skip(card)) return;
-      card.dataset.ab = '1';
-      const h = card.querySelector('h2,h3,h4,h5,.card-title,strong');
-      const lbl = h ? (h.innerText || '').slice(0,45) : '';
-      card.appendChild(makeBar(card, lbl, 'bottom'));
-    });
-
-    // 2. Bibliography entries
-    document.querySelectorAll('.bib-entry').forEach(el => {
-      if (el.dataset.ab || skip(el)) return;
-      el.dataset.ab = '1';
-      el.appendChild(makeBar(el, '', 'bottom'));
-    });
-
-    // 3. KJV panels — top bar
-    document.querySelectorAll('.kjv-panel').forEach(panel => {
-      if (panel.dataset.ab) return;
-      panel.dataset.ab = '1';
-      panel.insertBefore(makeBar(panel, 'Read entire section', 'top'), panel.firstChild);
-    });
-
-    // 4. Cat / sub / content panels — top bar
-    document.querySelectorAll('.cat-panel,.sub-panel,.content-panel').forEach(panel => {
-      if (panel.dataset.ab) return;
-      panel.dataset.ab = '1';
-      panel.insertBefore(makeBar(panel, 'Read entire section', 'top'), panel.firstChild);
-    });
-
-    // 5. Headings h2/h3/h4 — inline mini speaker reading heading block
-    document.querySelectorAll('h2,h3,h4').forEach(h => {
-      if (h.dataset.ab || skip(h)) return;
-      if (h.closest('.sub-tab-row,.kjv-subtab-bar,.tab-row')) return;
-      h.dataset.ab = '1';
-      const text = getHeadingBlock(h);
-      if (!text) return;
-      h.appendChild(makeMiniBtn(text));
-    });
-
-    // 6. h5 inline mini
-    document.querySelectorAll('h5').forEach(h => {
-      if (h.dataset.ab || skip(h)) return;
-      h.dataset.ab = '1';
-      const text = (h.innerText || '').trim();
-      if (!text) return;
-      h.appendChild(makeMiniBtn(text));
-    });
-
-    // 7. Standalone bordered/shaded divs (section blocks) in main content
-    const pageContainers = document.querySelectorAll('.page.active .container, .page.active > div');
-    pageContainers.forEach(container => {
-      Array.from(container.children).forEach(div => {
-        if (div.dataset.ab || skip(div) || div.tagName !== 'DIV') return;
-        // Already handled if it's a card or panel type
-        if (div.matches(CARDS) || div.classList.contains('kjv-panel') || div.classList.contains('cat-panel')) return;
-        const s = div.getAttribute('style') || '';
-        const cls = div.className || '';
-        // Only add to visually distinct section blocks
-        if (!s.includes('border') && !s.includes('background') && !cls.includes('section') && !cls.includes('block')) return;
-        if ((div.innerText || '').trim().length < 20) return; // too short to bother
-        div.dataset.ab = '1';
-        const h = div.querySelector('h2,h3,h4,h5,strong');
-        const lbl = h ? (h.innerText || '').slice(0,45) : '';
-        div.appendChild(makeBar(div, lbl, 'bottom'));
-      });
-    });
-
-    // 8. Dropdown items (.dropdown-item, .dropdown-content spans)
-    document.querySelectorAll('.dropdown-item').forEach(item => {
-      if (item.dataset.ab) return;
-      item.dataset.ab = '1';
-      const text = (item.innerText || item.textContent || '').trim();
-      if (!text) return;
-      item.style.display = 'flex';
-      item.style.alignItems = 'center';
-      item.style.justifyContent = 'space-between';
-      item.appendChild(makeHamBtn(text));
-    });
-
-    // 9. Hamburger menu items
-    document.querySelectorAll('.ham-item').forEach(item => {
-      if (item.dataset.ab) return;
-      item.dataset.ab = '1';
-      const text = (item.innerText || item.textContent || '').trim();
-      if (!text) return;
-      item.style.display = 'flex';
-      item.style.alignItems = 'center';
-      item.style.justifyContent = 'space-between';
-      item.appendChild(makeHamBtn(text));
-    });
+    // Clear ALL previous injections
+    document.querySelectorAll('.audio-bar:not([data-static]),.ab-mini,.ab-ham').forEach(el=>el.remove());
+    document.querySelectorAll('[data-ab]').forEach(el=>{ delete el.dataset.ab; });
+    // Inject on entire document (all pages, including hidden ones)
+    injectEl(document);
   }
 
   /* ── Global floating button (read whole page) ── */
   function initGlobalBtn() {
-    const btn = document.getElementById('tts-btn');
-    if (!btn || btn.dataset.ab) return;
-    btn.dataset.ab = '1';
-    btn.textContent = '🔈';
+    const btn=document.getElementById('tts-btn');
+    if(!btn||btn.dataset.ab)return;
+    btn.dataset.ab='1'; btn.textContent='🔈';
     let dragging=false,moved=false,sx,sy,sl,st;
     function sd(cx,cy){const r=btn.getBoundingClientRect();sx=cx;sy=cy;sl=r.left;st=r.top;btn.style.right='auto';btn.style.bottom='auto';btn.style.left=sl+'px';btn.style.top=st+'px';dragging=true;moved=false;}
-    function dd(cx,cy){if(!dragging)return;const dx=cx-sx,dy=cy-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;const W=innerWidth,H=innerHeight;btn.style.left=Math.max(8,Math.min(W-btn.offsetWidth-8,sl+dx))+'px';btn.style.top=Math.max(68,Math.min(H-btn.offsetHeight-8,st+dy))+'px';}
-    function ed(){if(!moved){if(activePlayBtn===btn){stopAll();}else{const page=document.querySelector('.page.active');const text=page?getTextOf(page):'';speak(text,btn,null);const gb=document.getElementById('tts-btn');if(gb){gb.textContent='🔊';gb.classList.add('playing');}}}dragging=false;}
+    function dd(cx,cy){if(!dragging)return;const dx=cx-sx,dy=cy-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;btn.style.left=Math.max(8,Math.min(innerWidth-btn.offsetWidth-8,sl+dx))+'px';btn.style.top=Math.max(68,Math.min(innerHeight-btn.offsetHeight-8,st+dy))+'px';}
+    function ed(){if(!moved){const page=document.querySelector('.page.active');const text=page?getTextOf(page):'';if(activePlayBtn===btn){stopAll();}else{speak(text,btn,null);btn.textContent='🔊';btn.classList.add('playing');}}dragging=false;}
     btn.addEventListener('mousedown',e=>{e.preventDefault();sd(e.clientX,e.clientY);});
     document.addEventListener('mousemove',e=>{if(dragging)dd(e.clientX,e.clientY);});
     document.addEventListener('mouseup',()=>{if(dragging)ed();});
@@ -10843,10 +10860,10 @@ window.TTS = (function() {
     document.addEventListener('touchend',()=>{if(dragging)ed();});
   }
 
-  document.addEventListener('DOMContentLoaded', () => { initGlobalBtn(); inject(); });
-  if (document.readyState !== 'loading') setTimeout(() => { initGlobalBtn(); inject(); }, 80);
+  document.addEventListener('DOMContentLoaded',()=>{initGlobalBtn();inject();});
+  if(document.readyState!=='loading')setTimeout(()=>{initGlobalBtn();inject();},80);
 
-  return { stopAll, inject };
+  return { stopAll, inject, injectEl };
 })();
 
 </script>
