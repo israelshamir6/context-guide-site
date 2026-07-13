@@ -10653,56 +10653,52 @@ window.TTS = (function() {
     }
   }
 
-  // Pre-warm voice list on page load so first click is instant
+  // ── TTS ENGINE: StreamElements Brian (Amazon Polly UK Male) + Web Speech API fallback ──
+
+  // Pre-warm Web Speech API voice list on page load
   (function warmVoices(){
     if(!window.speechSynthesis) return;
     const v=speechSynthesis.getVoices();
     if(!v.length) speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};
   })();
 
-  // Male UK English voice priority — Chrome, Edge, Windows, macOS
+  // Web Speech API: Male UK English voice priority — Chrome, Edge, Windows, macOS
   const MALE_UK_PREF=[
-    'Google UK English Male',            // Chrome (best match)
-    'Microsoft Ryan Online (Natural)',   // Edge / Windows 11 Neural
-    'Microsoft George Online (Natural)', // Edge / Windows Neural
+    'Google UK English Male',            // Chrome
+    'Microsoft Ryan Online (Natural)',   // Edge / Windows 11
+    'Microsoft George Online (Natural)', // Edge / Windows
     'Microsoft George',                  // Windows offline
     'Daniel',                            // macOS
     'Arthur',                            // macOS Monterey+
     'Oliver',                            // macOS
     'Harry',                             // macOS
     'James',                             // macOS older
-    'Microsoft David',                   // US male fallback (not female)
-    'Microsoft Mark',                    // US male fallback
+    'Microsoft David',                   // US male (not female)
+    'Microsoft Mark',                    // US male
   ];
 
   function getBestMaleVoice(){
     const voices=window.speechSynthesis.getVoices();
-    // Exact name match
-    for(const n of MALE_UK_PREF){
-      const v=voices.find(x=>x.name===n);
-      if(v) return v;
-    }
-    // Any en-GB male-named voice
+    for(const n of MALE_UK_PREF){const v=voices.find(x=>x.name===n);if(v) return v;}
     const gb=voices.filter(x=>x.lang==='en-GB'||x.lang.startsWith('en-GB'));
     const gbM=gb.find(x=>/ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name));
     if(gbM) return gbM;
     if(gb.length) return gb[0];
-    // Any en male-ish voice
     return voices.find(x=>/david|mark|ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name))||null;
   }
 
-  function speakChunked(text, onEnd){
+  // Web Speech API fallback with chunking + async-load fix
+  function speakWSA(text, onEnd){
     const synth=window.speechSynthesis;
     if(synth.speaking||synth.pending) synth.cancel();
-    // Chunk text: Chrome hangs on very long utterances
-    const MAX=480;
+    const MAX=460;
     const words=text.split(' ');
     const chunks=[];
     let buf='';
     for(const w of words){
-      const candidate=(buf?buf+' ':'')+w;
-      if(candidate.length>MAX&&buf){chunks.push(buf);buf=w;}
-      else buf=candidate;
+      const c=(buf?buf+' ':'')+w;
+      if(c.length>MAX&&buf){chunks.push(buf);buf=w;}
+      else buf=c;
     }
     if(buf) chunks.push(buf);
     if(!chunks.length){onEnd();return;}
@@ -10717,6 +10713,59 @@ window.TTS = (function() {
       utt.onerror=function(){if(idx<chunks.length)next();else onEnd();};
       synth.speak(utt);
     }
+    // Ensure voices loaded before first chunk
+    if(synth.getVoices().length>0){next();}
+    else{
+      let done=false;
+      function go(){if(done)return;done=true;synth.onvoiceschanged=null;clearInterval(poll);next();}
+      synth.onvoiceschanged=go;
+      const poll=setInterval(function(){if(synth.getVoices().length>0)go();},80);
+      setTimeout(function(){clearInterval(poll);if(!done){done=true;next();}},3000);
+    }
+  }
+
+  // StreamElements TTS — Amazon Polly "Brian" (British male, free, no API key)
+  // Splits long text into sentence chunks ≤ 200 chars to stay within URL limits
+  function speakBrian(text, onEnd){
+    const BASE='https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=';
+    const MAX=200;
+    // Split on sentence boundaries
+    const sentences=text.replace(/([.!?;])\s+/g,'$1||').split('||').map(s=>s.trim()).filter(Boolean);
+    const chunks=[];
+    let buf='';
+    for(const s of sentences){
+      const c=(buf?buf+' ':'')+s;
+      if(c.length>MAX&&buf){chunks.push(buf);buf=s;}
+      else buf=c;
+    }
+    if(buf) chunks.push(buf);
+    if(!chunks.length){onEnd();return;}
+    let idx=0;
+    let failed=0;
+    function next(){
+      if(idx>=chunks.length){onEnd();return;}
+      const chunk=chunks[idx++];
+      const audio=new Audio(BASE+encodeURIComponent(chunk));
+      audio.crossOrigin='anonymous';
+      let played=false;
+      audio.oncanplaythrough=function(){if(!played){played=true;audio.play().catch(fallback);}};
+      audio.onended=next;
+      audio.onerror=fallback;
+      // Timeout: if audio doesn't load in 4s, fall back
+      const t=setTimeout(fallback,4000);
+      audio.onended=function(){clearTimeout(t);next();};
+      audio.onerror=function(){clearTimeout(t);fallback();};
+      function fallback(){
+        if(played) return;
+        played=true;
+        clearTimeout(t);
+        failed++;
+        // If Brian fails 2+ times, switch entirely to Web Speech API
+        if(failed>=2){speakWSA(chunks.slice(idx-1).join(' '),onEnd);return;}
+        next(); // skip this chunk
+      }
+      audio.load();
+    }
     next();
   }
 
@@ -10725,22 +10774,12 @@ window.TTS = (function() {
     if (activePlayBtn===btn) { stopAll(); return; }
     startUI(btn, bar);
     const onEnd = () => stopUI();
-    const synth=window.speechSynthesis;
 
-    function doSpeak(){
-      speakChunked(text, onEnd);
-    }
-
-    // Ensure voices loaded — fix race condition with event + polling backup
-    if(synth.getVoices().length>0){
-      doSpeak();
-    } else {
-      let fired=false;
-      function go(){if(fired)return;fired=true;synth.onvoiceschanged=null;clearInterval(poll);doSpeak();}
-      synth.onvoiceschanged=go;
-      // Polling backup: onvoiceschanged may have already fired before we registered
-      const poll=setInterval(function(){if(synth.getVoices().length>0)go();},80);
-      setTimeout(function(){clearInterval(poll);if(!fired){fired=true;doSpeak();}},3000);
+    // Try StreamElements Brian first; fall back to Web Speech API
+    try {
+      speakBrian(text, onEnd);
+    } catch(e) {
+      speakWSA(text, onEnd);
     }
   }
 
