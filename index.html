@@ -37,7 +37,7 @@ strong{color:var(--accent2)}
 em{color:var(--purple);font-style:italic}
 
 /* ---- TOP NAV ---- */
-#topnav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,17,23,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;height:60px;gap:4px}
+#topnav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,17,23,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px 0 20px;height:60px;gap:0;overflow:hidden}.nav-scroll{display:flex;align-items:center;gap:4px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding:0 6px}.nav-scroll::-webkit-scrollbar{display:none}.nav-dl-wrap{display:flex;align-items:center;flex-shrink:0;padding-left:8px;border-left:1px solid var(--border);margin-left:4px}
 .nav-logo{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap;margin-right:16px;letter-spacing:.5px}
 .nav-btn{background:none;border:none;color:var(--text2);font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s}
 .nav-btn:hover,.nav-btn.active{background:var(--bg3);color:var(--text)}
@@ -285,38 +285,41 @@ hr{border:none;border-top:1px solid var(--border);margin:24px 0}
 <!-- NAVIGATION -->
 <nav id="topnav">
   <div class="nav-logo">⚑ Forms of Context</div>
-  <button class="nav-btn active" onclick="showPage('home',this)">Home</button>
-  <div class="dropdown">
-    <button class="nav-btn" onclick="showPage('context-types',this)" id="nav-ctx">Context Types ▾</button>
-    <div class="dropdown-content">
-      <div class="dropdown-head">6 Categories · 30 Types</div>
-      <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat1')">🔤 Linguistic &amp; Textual</span>
-      <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat2')">🏛️ Historical &amp; Cultural</span>
-      <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat3')">✍️ Authorial &amp; Audience</span>
-      <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat4')">⛪ Theological &amp; Ideological</span>
-      <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat5')">📋 Compositional &amp; Transmission</span>
-      <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat6')">🌍 Diaspora &amp; Community-Specific</span>
+  <div class="nav-scroll">
+    <button class="nav-btn active" onclick="showPage('home',this)">Home</button>
+    <div class="dropdown">
+      <button class="nav-btn" onclick="showPage('context-types',this)" id="nav-ctx">Context Types ▾</button>
+      <div class="dropdown-content">
+        <div class="dropdown-head">6 Categories · 30 Types</div>
+        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat1')">🔤 Linguistic &amp; Textual</span>
+        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat2')">🏛️ Historical &amp; Cultural</span>
+        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat3')">✍️ Authorial &amp; Audience</span>
+        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat4')">⛪ Theological &amp; Ideological</span>
+        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat5')">📋 Compositional &amp; Transmission</span>
+        <span class="dropdown-item" onclick="showPage('context-types',document.getElementById('nav-ctx'));switchCat('cat6')">🌍 Diaspora &amp; Community-Specific</span>
+      </div>
     </div>
-  </div>
-  <button class="nav-btn" onclick="showPage('etymology',this)">Context vs. Etymology</button>
-  <button class="nav-btn" onclick="showPage('lexical',this)">Lexical Studies</button>
-  <button class="nav-btn" onclick="showPage('scholars',this)">Key Scholars</button>
-  <button class="nav-btn" onclick="showPage('bible-defines',this)">Bible Defines Itself</button>
-  <button class="nav-btn" onclick="showPage('word-errors',this)">Word-Study Errors</button>
-  <div class="dropdown">
-    <button class="nav-btn" id="nav-special">Special Topics ▾</button>
-    <div class="dropdown-content">
-      <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('psych')">🧠 Psychology of Adaptation</span>
-      <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('epist')">⚠️ Epistemological Consequences</span>
-      <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('multigeni')">👨‍👩‍👧‍👦 Multi-Generational Interpretation</span>
+    <button class="nav-btn" onclick="showPage('etymology',this)">Context vs. Etymology</button>
+    <button class="nav-btn" onclick="showPage('lexical',this)">Lexical Studies</button>
+    <button class="nav-btn" onclick="showPage('scholars',this)">Key Scholars</button>
+    <button class="nav-btn" onclick="showPage('bible-defines',this)">Bible Defines Itself</button>
+    <button class="nav-btn" onclick="showPage('word-errors',this)">Word-Study Errors</button>
+    <div class="dropdown">
+      <button class="nav-btn" id="nav-special">Special Topics ▾</button>
+      <div class="dropdown-content">
+        <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('psych')">🧠 Psychology of Adaptation</span>
+        <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('epist')">⚠️ Epistemological Consequences</span>
+        <span class="dropdown-item" onclick="showPage('special',document.getElementById('nav-special'));switchSub('multigeni')">👨‍👩‍👧‍👦 Multi-Generational Interpretation</span>
+      </div>
     </div>
+    <button class="nav-btn" onclick="showPage('intertextuality',this)">Intertextuality</button>
+    <button class="nav-btn" onclick="showPage('glossary',this)">Glossary</button>
+    <button class="nav-btn" onclick="showPage('bibliography',this)">Bibliography</button>
+    <button class="nav-btn" onclick="showPage('kjv-authority',this)">KJV 1611 ⚑</button>
   </div>
-  <button class="nav-btn" onclick="showPage('intertextuality',this)">Intertextuality</button>
-  <button class="nav-btn" onclick="showPage('glossary',this)">Glossary</button>
-  <button class="nav-btn" onclick="showPage('bibliography',this)">Bibliography</button>
-  <button class="nav-btn" onclick="showPage('kjv-authority',this)">KJV 1611 ⚑</button>
-
-  <button class="dl-btn-nav" onclick="openDLModal()" style="margin-left:auto">📥 Download</button>
+  <div class="nav-dl-wrap">
+    <button class="dl-btn-nav" onclick="openDLModal()">📥 Download</button>
+  </div>
 </nav>
 
 <div id="main">
