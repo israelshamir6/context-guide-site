@@ -10577,6 +10577,47 @@ window.TTS = (function() {
   let activePlayBtn = null;
   let activeBar     = null;
 
+  /* ── Text normalizer — fixes hyphens, dashes, abbreviations for TTS ── */
+  function cleanText(raw){
+    return raw
+      // Scripture verse ranges: "8:1-13" → "chapter 8, verses 1 through 13"
+      .replace(/(\d+):(\d+)[\u2013\u2014\-](\d+)/g,'chapter $1, verses $2 through $3')
+      // Page ranges: "pp. 107–116" → "pages 107 through 116"
+      .replace(/pp?\.?\s*(\d+)[\u2013\u2014\-](\d+)/g,'pages $1 through $2')
+      // Volume ranges: "Vols. 1-2" → "Volumes 1 through 2"
+      .replace(/[Vv]ols?\.?\s*(\d+)[\u2013\u2014\-](\d+)/g,'Volumes $1 through $2')
+      // Ordinal ranges: "18th-19th century" → "18th through 19th century"
+      .replace(/(\d+(?:st|nd|rd|th))[\u2013\u2014\-](\d+(?:st|nd|rd|th))/gi,'$1 through $2')
+      // Year ranges: "1845-1900" → "1845 through 1900"
+      .replace(/(\d{4})[\u2013\u2014\-](\d{4})/g,'$1 through $2')
+      // Remaining numeric ranges: "1-10" → "1 through 10"
+      .replace(/(\d+)[\u2013\u2014\-](\d+)/g,'$1 through $2')
+      // Em dash / en dash → comma-space (natural spoken pause)
+      .replace(/\s*[\u2013\u2014]\s*/g,', ')
+      // Hyphenated compound words: "well-known" → "well known", "co-text" → "co text"
+      .replace(/([A-Za-z]+)-([A-Za-z]+)/g,'$1 $2')
+      // Emoji and special symbols that TTS mispronounces
+      .replace(/[⚖📌⚠🔤🏛✍⛪📋🌍📍🧭🎯📖🔑▶■●◆★⁺①②③④⑤]/g,'')
+      .replace(/[\u{1F300}-\u{1FFFF}]/gu,'')
+      // Common abbreviations
+      .replace(/\be\.g\.\s*/g,'for example, ')
+      .replace(/\bi\.e\.\s*/g,'that is, ')
+      .replace(/\betc\.(?=\s|$)/g,'and so on')
+      .replace(/\bvs\.\s*/g,'versus ')
+      .replace(/\bch\.\s*/g,'chapter ')
+      .replace(/\bvv?\.\s*/g,'verse ')
+      .replace(/\bca\.\s*/g,'circa ')
+      .replace(/\bKJV\b/g,'King James Version')
+      .replace(/\bNT\b/g,'New Testament')
+      .replace(/\bOT\b/g,'Old Testament')
+      // Punctuation tidying: multiple punctuation, ellipsis pause
+      .replace(/\.{2,}/g,'. ')
+      // Collapse whitespace but preserve sentence breaks
+      .replace(/[ \t]+/g,' ')
+      .replace(/\n{3,}/g,'\n\n')
+      .trim();
+  }
+
   /* ── Text extraction — no images, no UI chrome ── */
   function getTextOf(el) {
     const clone = el.cloneNode(true);
@@ -10588,14 +10629,15 @@ window.TTS = (function() {
       '.kjv-subtab-bar,.sub-tab-row,.tab-row,' +
       '[aria-hidden="true"]'
     ).forEach(x => x.remove());
-    return (clone.innerText || clone.textContent || '').replace(/\s{3,}/g,'\n\n').trim();
+    const raw = (clone.innerText || clone.textContent || '').replace(/\s{3,}/g,'\n\n').trim();
+    return cleanText(raw);
   }
 
   function getHeadingBlock(h) {
     const lvl = parseInt(h.tagName[1]);
     const clone = h.cloneNode(true);
     clone.querySelectorAll('.ab-mini,.ab-ham,button').forEach(x=>x.remove());
-    let text = (clone.innerText||'') + '\n\n';
+    let text = (clone.innerText||'') + '. ';
     let sib = h.nextElementSibling;
     while (sib) {
       const tag = sib.tagName||'';
@@ -10603,11 +10645,11 @@ window.TTS = (function() {
       if (!sib.classList.contains('audio-bar')) {
         const c = sib.cloneNode(true);
         c.querySelectorAll('img,canvas,svg,.audio-bar,.ab-mini,button,script').forEach(x=>x.remove());
-        text += (c.innerText||c.textContent||'') + '\n\n';
+        text += (c.innerText||c.textContent||'') + ' ';
       }
       sib = sib.nextElementSibling;
     }
-    return text.replace(/\s{3,}/g,'\n\n').trim();
+    return cleanText(text.replace(/\s{3,}/g,' ').trim());
   }
 
   /* ── Playback UI ── */
@@ -10687,17 +10729,18 @@ window.TTS = (function() {
     return voices.find(x=>/david|mark|ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name))||null;
   }
 
-  // Web Speech API fallback with chunking + async-load fix
+  // Web Speech API fallback — sentence-boundary chunking + async voice-load fix
   function speakWSA(text, onEnd){
     const synth=window.speechSynthesis;
     if(synth.speaking||synth.pending) synth.cancel();
     const MAX=460;
-    const words=text.split(' ');
+    // Split on sentence boundaries first for natural phrasing
+    const sentences=text.replace(/([.!?;])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
     const chunks=[];
     let buf='';
-    for(const w of words){
-      const c=(buf?buf+' ':'')+w;
-      if(c.length>MAX&&buf){chunks.push(buf);buf=w;}
+    for(const s of sentences){
+      const c=(buf?buf+' ':'')+s;
+      if(c.length>MAX&&buf){chunks.push(buf);buf=s;}
       else buf=c;
     }
     if(buf) chunks.push(buf);
@@ -10713,7 +10756,6 @@ window.TTS = (function() {
       utt.onerror=function(){if(idx<chunks.length)next();else onEnd();};
       synth.speak(utt);
     }
-    // Ensure voices loaded before first chunk
     if(synth.getVoices().length>0){next();}
     else{
       let done=false;
@@ -10725,12 +10767,11 @@ window.TTS = (function() {
   }
 
   // StreamElements TTS — Amazon Polly "Brian" (British male, free, no API key)
-  // Splits long text into sentence chunks ≤ 200 chars to stay within URL limits
   function speakBrian(text, onEnd){
     const BASE='https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=';
-    const MAX=200;
-    // Split on sentence boundaries
-    const sentences=text.replace(/([.!?;])\s+/g,'$1||').split('||').map(s=>s.trim()).filter(Boolean);
+    const MAX=190;
+    // Split on sentence boundaries then join into ≤190-char chunks
+    const sentences=text.replace(/([.!?;])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
     const chunks=[];
     let buf='';
     for(const s of sentences){
@@ -10740,33 +10781,30 @@ window.TTS = (function() {
     }
     if(buf) chunks.push(buf);
     if(!chunks.length){onEnd();return;}
-    let idx=0;
-    let failed=0;
-    function next(){
+    let idx=0, brianFails=0;
+    function playNext(){
       if(idx>=chunks.length){onEnd();return;}
       const chunk=chunks[idx++];
       const audio=new Audio(BASE+encodeURIComponent(chunk));
-      audio.crossOrigin='anonymous';
-      let played=false;
-      audio.oncanplaythrough=function(){if(!played){played=true;audio.play().catch(fallback);}};
-      audio.onended=next;
-      audio.onerror=fallback;
-      // Timeout: if audio doesn't load in 4s, fall back
-      const t=setTimeout(fallback,4000);
-      audio.onended=function(){clearTimeout(t);next();};
-      audio.onerror=function(){clearTimeout(t);fallback();};
-      function fallback(){
-        if(played) return;
-        played=true;
-        clearTimeout(t);
-        failed++;
-        // If Brian fails 2+ times, switch entirely to Web Speech API
-        if(failed>=2){speakWSA(chunks.slice(idx-1).join(' '),onEnd);return;}
-        next(); // skip this chunk
+      let settled=false, timer=null;
+      function done(){if(settled)return;settled=true;if(timer){clearTimeout(timer);timer=null;}playNext();}
+      function fail(){
+        if(settled)return;settled=true;if(timer){clearTimeout(timer);timer=null;}
+        brianFails++;
+        if(brianFails>=2){speakWSA(chunks.slice(idx-1).join(' '),onEnd);}
+        else playNext();
       }
-      audio.load();
+      audio.onended=done;
+      audio.onerror=fail;
+      timer=setTimeout(fail,5000);
+      audio.play().catch(err=>{
+        // User gesture expired → fall back entirely to Web Speech API
+        if(timer){clearTimeout(timer);}
+        settled=true;
+        speakWSA(chunks.slice(idx-1).join(' '),onEnd);
+      });
     }
-    next();
+    playNext();
   }
 
   function speak(text, btn, bar) {
@@ -10818,25 +10856,53 @@ window.TTS = (function() {
     return btn;
   }
 
+  /* ── Play-All bar: reads all subsections of a container in sequence ── */
+  function makeGroupBar(container, label) {
+    const bar=document.createElement('div');
+    bar.className='audio-bar ab-top';
+    bar.style.cssText='border-radius:6px 6px 0 0;margin:0;';
+    bar.innerHTML=
+      '<button class="ab-play-btn" style="font-weight:600">▶ Play All</button>'+
+      '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '<div class="ab-lbl">'+(label||'').replace(/</g,'&lt;').slice(0,52)+'</div>'+
+      '<button class="ab-stop-btn" title="Stop">■</button>';
+    const pb=bar.querySelector('.ab-play-btn');
+    const sb=bar.querySelector('.ab-stop-btn');
+    let cache=null;
+    pb.addEventListener('click',e=>{e.stopPropagation();if(!cache)cache=getTextOf(container);speak(cache,pb,bar);});
+    sb.addEventListener('click',e=>{e.stopPropagation();stopAll();});
+    return bar;
+  }
+
   /* ── Core injection — can be called on any container ── */
   function injectEl(root) {
     const SKIP = el => el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,#tts-btn,#tts-tooltip');
 
-    // ctx-card headers (forms of context accordion) — mini speaker before chevron
+    // ── ctx-card: "Play All" at top of body + mini-speaker on header ──
     root.querySelectorAll('.ctx-card').forEach(card=>{
       if(card.dataset.ab)return;
       card.dataset.ab='1';
       const header=card.querySelector('.ctx-card-header');
       const chevron=card.querySelector('.ctx-chevron');
+      const body=card.querySelector('.ctx-body');
+      // Mini speaker on header (reads whole card)
       if(header && !header.querySelector('.ab-mini')){
         const mini=makeMini(()=>getTextOf(card));
+        mini.title='Read entire section';
         mini.style.cssText='font-size:14px;opacity:.45;margin-left:auto;margin-right:8px;flex-shrink:0';
         if(chevron) header.insertBefore(mini,chevron);
         else header.appendChild(mini);
       }
+      // Play All bar at top of body
+      if(body && !body.querySelector('.audio-bar')){
+        const h4=card.querySelector('h4');
+        const lbl=h4?(h4.innerText||'').trim():'';
+        const groupBar=makeGroupBar(body, lbl || 'Read all subsections');
+        body.insertBefore(groupBar,body.firstChild);
+      }
     });
 
-    // ctx-section (Overview, How Determined, etc.)
+    // ── ctx-section (Overview, How Determined, Detailed Explanation, etc.) ──
     root.querySelectorAll('.ctx-section').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
@@ -10844,7 +10910,39 @@ window.TTS = (function() {
       el.appendChild(makeBar(el,lbl));
     });
 
-    // example-box and misapp-box
+    // ── card-sm (Modern Application / Modern Example — inside ctx-body/ctx-grid) ──
+    root.querySelectorAll('.card-sm').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      el.dataset.ab='1';
+      const lbl=(el.querySelector('.ctx-section-label')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    // ── Inline highlighted boxes inside ctx-body (Key Scholarly Statement, etc.) ──
+    root.querySelectorAll('.ctx-body > div[style]').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      if(el.classList.contains('ctx-section')||el.classList.contains('ctx-grid')) return;
+      if(el.querySelector('.ctx-card,.audio-bar')) return;
+      const s=el.getAttribute('style')||'';
+      if(!s.includes('border')&&!s.includes('background')) return;
+      if((el.innerText||'').trim().length<20) return;
+      el.dataset.ab='1';
+      const lbl=(el.querySelector('[style*="uppercase"],[style*="text-transform"]')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl.slice(0,48)||'Highlighted block'));
+    });
+
+    // ── Individual case-study / quote boxes inside ctx-sections ──
+    root.querySelectorAll('.ctx-section > div[style], .ctx-body > .ctx-section > div[style]').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;
+      if((el.innerText||'').trim().length<20) return;
+      el.dataset.ab='1';
+      // Get label from first small-caps child
+      const lbl=(el.querySelector('[style*="uppercase"]')||{}).innerText||
+                (el.querySelector('[style*="font-weight:600"],[style*="font-weight: 600"]')||{}).innerText||'';
+      el.appendChild(makeBar(el,('Case Study: '+lbl).slice(0,52)));
+    });
+
+    // ── example-box and misapp-box ──
     root.querySelectorAll('.example-box,.misapp-box').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
@@ -10852,56 +10950,60 @@ window.TTS = (function() {
       el.appendChild(makeBar(el,lbl));
     });
 
-    // scholar-cite blocks
+    // ── scholar-cite blocks ──
     root.querySelectorAll('.scholar-cite').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
-      el.appendChild(makeBar(el,'Scholar citation'));
+      el.appendChild(makeBar(el,'Scholar'));
     });
 
-    // omit-row (omitted verses)
+    // ── omit-row (omitted verses) ──
     root.querySelectorAll('.omit-row').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
       el.appendChild(makeBar(el,''));
     });
 
-    // All card types
+    // ── All card types NOT inside ctx-body ──
     const CARD_SEL='.card,.lexicon-card,.scholar-card,.home-card,.lex-card,.glos-card,'+
                    '.principle-card,.error-card,.argument-card,.stat-box,.verdict-box,'+
-                   '.scripture-block,.quote-block,.cat-header-block,.card-sm,[class$="-card"]';
+                   '.scripture-block,.quote-block,.cat-header-block,[class$="-card"]';
     root.querySelectorAll(CARD_SEL).forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
-      // skip if it's inside a ctx-section (already handled)
-      if(el.closest('.ctx-section,.ctx-body'))return;
+      // skip if it's already inside a ctx-body-level injection (card-sm handled above)
+      if(el.classList.contains('card-sm')) return;
+      if(el.closest('.ctx-body')) {
+        // Still inject if it's a quote-block or scripture-block inside argument-card
+        if(!el.matches('.quote-block,.scripture-block')) return;
+      }
       el.dataset.ab='1';
       const h=el.querySelector('h2,h3,h4,h5,strong,.card-title');
       const lbl=h?(h.innerText||'').slice(0,48):'';
       el.appendChild(makeBar(el,lbl));
     });
 
-    // bib-entry
+    // ── bib-entry ──
     root.querySelectorAll('.bib-entry').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
       el.appendChild(makeBar(el,''));
     });
 
-    // KJV panels — top bar
+    // ── KJV panels — group Play All bar at top ──
     root.querySelectorAll('.kjv-panel').forEach(panel=>{
       if(panel.dataset.ab)return;
       panel.dataset.ab='1';
-      panel.insertBefore(makeBar(panel,'▶ Read entire section',true),panel.firstChild);
+      panel.insertBefore(makeGroupBar(panel,'Read entire section'),panel.firstChild);
     });
 
-    // cat-panel, sub-panel — top bar
+    // ── cat-panel, sub-panel, content-panel — group Play All bar at top ──
     root.querySelectorAll('.cat-panel,.sub-panel,.content-panel').forEach(panel=>{
       if(panel.dataset.ab)return;
       panel.dataset.ab='1';
-      panel.insertBefore(makeBar(panel,'▶ Read entire section',true),panel.firstChild);
+      panel.insertBefore(makeGroupBar(panel,'Read entire section'),panel.firstChild);
     });
 
-    // Headings h2/h3/h4 not inside cards or tab-bars — inline mini
+    // ── Headings h2/h3/h4 not inside card headers or tab-bars — inline mini ──
     root.querySelectorAll('h2,h3,h4').forEach(h=>{
       if(h.dataset.ab||SKIP(h))return;
       if(h.closest('.ctx-card-header,.sub-tab-row,.kjv-subtab-bar,.tab-row,.cat-tabs,.audio-bar'))return;
@@ -10909,15 +11011,15 @@ window.TTS = (function() {
       h.appendChild(makeMini(()=>getHeadingBlock(h)));
     });
 
-    // h5 inline mini
+    // ── h5 inline mini ──
     root.querySelectorAll('h5').forEach(h=>{
       if(h.dataset.ab||SKIP(h))return;
       if(h.closest('.audio-bar,.cat-tabs'))return;
       h.dataset.ab='1';
-      h.appendChild(makeMini((h.innerText||'').trim()));
+      h.appendChild(makeMini(()=>getHeadingBlock(h)));
     });
 
-    // Bordered/shaded section divs (inline-styled blocks)
+    // ── Bordered/shaded top-level divs (inline-styled blocks at page level) ──
     root.querySelectorAll('.page > .container > div, .page > .container > section,'+
                           '.kjv-panel > div[style], .cat-panel > div[style]').forEach(div=>{
       if(div.dataset.ab||SKIP(div))return;
@@ -10932,7 +11034,7 @@ window.TTS = (function() {
       div.appendChild(makeBar(div,h?(h.innerText||'').slice(0,48):''));
     });
 
-    // Hamburger menu items
+    // ── Hamburger menu items ──
     root.querySelectorAll('.ham-item').forEach(item=>{
       if(item.dataset.ab)return;
       item.dataset.ab='1';
@@ -10943,7 +11045,7 @@ window.TTS = (function() {
       item.appendChild(makeHam(text));
     });
 
-    // Dropdown items
+    // ── Dropdown items ──
     root.querySelectorAll('.dropdown-item').forEach(item=>{
       if(item.dataset.ab)return;
       item.dataset.ab='1';
