@@ -13728,153 +13728,60 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ═══════════════════════════════════════════════════════
-// AUDIO ENGINE v3 — full-site, every element, UK English Male
+// ═══════════════════════════════════════════════════════
+// AUDIO ENGINE v4 — generation-safe, isolated, full hierarchy
 // ═══════════════════════════════════════════════════════
 window.TTS = (function() {
+  'use strict';
   let activePlayBtn = null;
   let activeBar     = null;
   let isPaused      = false;
-  let currentBrianAudio  = null;
-  let currentBrianQueue  = [];   // pre-loaded Audio objects
-  let brianAborted  = false;
+  let currentBrianAudio = null;
+  let currentBrianQueue = [];
+  let ttsGen = 0; // incremented on every new speak() — invalidates stale callbacks
 
   /* ══════════════════════════════════════════════════════
-     TEXT NORMALISER — biblical, Greek, Hebrew, scholarly
+     TEXT NORMALISER
   ══════════════════════════════════════════════════════ */
   function cleanText(raw) {
     return raw
-      /* ── remove non-Latin scripts that TTS mispronounces ── */
-      // Greek polytonic / monotonic block (U+0370–U+03FF, U+1F00–U+1FFF)
-      .replace(/[Ͱ-Ͽἀ-῿]+/g, '')
-      // Hebrew block (U+0590–U+05FF)
-      .replace(/[֐-׿]+/g, '')
-      // Combining diacritics (U+0300–U+036F)
-      .replace(/[̀-ͯ]/g, '')
-      // Macrons on vowels → plain ASCII (diathēkē → diatheke, etc.)
+      .replace(/[Ͱ-Ͽἀ-῿]+/g,'')
+      .replace(/[֐-׿]+/g,'')
+      .replace(/[̀-ͯ]/g,'')
       .replace(/[āĀ]/g,'a').replace(/[ēĒ]/g,'e').replace(/[īĪ]/g,'i')
       .replace(/[ōŌ]/g,'o').replace(/[ūŪ]/g,'u')
-      // Diacritical Latin letters common in transliteration
       .replace(/[çÇ]/g,'s').replace(/[ṭ]/g,'t').replace(/[ḥ]/g,'h')
       .replace(/[šŠ]/g,'sh').replace(/[ẓ]/g,'z').replace(/[ḏ]/g,'d')
-
-      /* ── emoji / symbols ── */
-      .replace(/[⚖📌⚠🔤🏛✍⛪📋🌍📍🧭🎯📖🔑▶■●◆★⁺①②③④⑤§©®™°]/g,'')
-      .replace(/[\u{1F300}-\u{1FFFF}]/gu,'')
-
-      /* ── Scripture ranges: "8:1-13" → "chapter 8, verses 1 through 13" ── */
-      .replace(/(\d+):(\d+)[–—\-](\d+)/g,'chapter $1, verses $2 through $3')
-      // Single verse ref: "8:1" → "chapter 8, verse 1"
-      .replace(/(\d+):(\d+)/g,'chapter $1, verse $2')
-
-      /* ── Page / volume / ordinal / year ranges ── */
-      .replace(/\bpp?\.?\s*(\d+)[–—\-](\d+)/g,'pages $1 through $2')
-      .replace(/\b[Vv]ols?\.?\s*(\d+)[–—\-](\d+)/g,'Volumes $1 through $2')
-      .replace(/(\d+(?:st|nd|rd|th))[–—\-](\d+(?:st|nd|rd|th))/gi,'$1 through $2')
-      .replace(/(\d{4})[–—\-](\d{4})/g,'$1 through $2')
-      .replace(/(\d+)[–—\-](\d+)/g,'$1 through $2')
-
-      /* ── Dashes → natural comma pause ── */
-      .replace(/\s*[–—]\s*/g,', ')
-
-      /* ── Biblical / scholarly abbreviations ── */
-      .replace(/\bKJV\b/g,'King James Version')
-      .replace(/\bKJV\s+1611\b/g,'King James Version of 1611')
-      .replace(/\bNT\b/g,'New Testament')
-      .replace(/\bOT\b/g,'Old Testament')
-      .replace(/\bLXX\b/g,'Septuagint')
-      .replace(/\bMT\b/g,'Masoretic Text')
-      .replace(/\bDSS\b/g,'Dead Sea Scrolls')
-      .replace(/\bBCE\b/g,'Before the Common Era')
-      .replace(/\bCE\b(?!\w)/g,'of the Common Era')
-      .replace(/\bHeb\.\s*/g,'Hebrews ')
-      .replace(/\bGal\.\s*/g,'Galatians ')
-      .replace(/\bRom\.\s*/g,'Romans ')
-      .replace(/\bEph\.\s*/g,'Ephesians ')
-      .replace(/\bCol\.\s*/g,'Colossians ')
-      .replace(/\bPhil\.\s*/g,'Philippians ')
-      .replace(/\b1\s*Cor\.\s*/g,'First Corinthians ')
-      .replace(/\b2\s*Cor\.\s*/g,'Second Corinthians ')
-      .replace(/\b1\s*Pet\.\s*/g,'First Peter ')
-      .replace(/\b2\s*Pet\.\s*/g,'Second Peter ')
-      .replace(/\b1\s*Tim\.\s*/g,'First Timothy ')
-      .replace(/\b2\s*Tim\.\s*/g,'Second Timothy ')
-      .replace(/\bDeut\.\s*/g,'Deuteronomy ')
-      .replace(/\bIsa\.\s*/g,'Isaiah ')
-      .replace(/\bJer\.\s*/g,'Jeremiah ')
-      .replace(/\bLev\.\s*/g,'Leviticus ')
-      .replace(/\bNum\.\s*/g,'Numbers ')
-      .replace(/\bGen\.\s*/g,'Genesis ')
-      .replace(/\bExod?\.\s*/g,'Exodus ')
-      .replace(/\bPs\.\s*/g,'Psalm ')
-      .replace(/\bProv\.\s*/g,'Proverbs ')
-      .replace(/\bMatt?\.\s*/g,'Matthew ')
-      .replace(/\bMk\.\s*/g,'Mark ')
-      .replace(/\bLk\.\s*/g,'Luke ')
-      .replace(/\bJn\.\s*/g,'John ')
-      .replace(/\bActs\s+(\d)/g,'Acts chapter $1')
-      .replace(/\bRev\.\s*/g,'Revelation ')
-      // Commentary series
-      .replace(/\bNICOT\b/g,'New International Commentary on the Old Testament')
-      .replace(/\bNICNT\b/g,'New International Commentary on the New Testament')
-      .replace(/\bNIGTC\b/g,'New International Greek Testament Commentary')
-      .replace(/\bNAC\b/g,'New American Commentary')
-      .replace(/\bWBC\b/g,'Word Biblical Commentary')
-      .replace(/\bTNTC\b/g,'Tyndale New Testament Commentary')
-      .replace(/\bTOTC\b/g,'Tyndale Old Testament Commentary')
-      .replace(/\bNCBC\b/g,'New Century Bible Commentary')
-      .replace(/\bIVP\b/g,'InterVarsity Press')
-      .replace(/\bETS\b/g,'Evangelical Theological Society')
-      // Latin scholarly
-      .replace(/\bibid\.\s*/gi,'in the same source, ')
-      .replace(/\bop\. cit\.\s*/gi,'in the cited work, ')
-      .replace(/\bcf\.\s*/g,'see also ')
-      .replace(/\bviz\.\s*/g,'namely, ')
-      .replace(/\bet al\.\s*/g,'and others ')
-      .replace(/\be\.g\.\s*/g,'for example, ')
-      .replace(/\bi\.e\.\s*/g,'that is, ')
-      .replace(/\betc\.(?=\s|$)/g,'and so on')
-      .replace(/\bvs\.\s*/g,'versus ')
-      .replace(/\bca\.\s*/g,'circa ')
-      .replace(/\bc\.\s*(\d{3,4})/g,'circa $1')
-      // Single-letter scholarly abbreviations
-      .replace(/\bch\.\s*/g,'chapter ')
-      .replace(/\bvv\.\s*/g,'verses ')
-      .replace(/\bv\.\s+(?=\d)/g,'verse ')
-      .replace(/\bp\.\s+(?=\d)/g,'page ')
-      .replace(/\bpp\.\s+(?=\d)/g,'pages ')
-      .replace(/\bvol\.\s*/gi,'volume ')
-      .replace(/\bed\.\s+/gi,'edition, ')
-      .replace(/\btrans\.\s+/gi,'translated by ')
-      .replace(/\brev\.\s+ed\b/gi,'revised edition')
-
-      /* ── Hyphenated compounds → space (after range replacement so "1-10" is safe) ── */
-      .replace(/([A-Za-z]{2,})-([A-Za-z]{2,})/g,'$1 $2')
-
-      /* ── Punctuation tidying ── */
-      .replace(/\.{2,}/g,'. ')
-      // Remove stray asterisks, underscores, backticks
-      .replace(/[*_`]/g,'')
-      // Multiple punctuation collapse
-      .replace(/([,;:]){2,}/g,'$1')
-      // Space before punctuation
-      .replace(/\s+([,;:.!?])/g,'$1')
-      // Ensure space after sentence-ending punctuation
-      .replace(/([.!?;])([A-Z])/g,'$1 $2')
-
-      /* ── Whitespace ── */
-      .replace(/[ \t]+/g,' ')
-      .replace(/\n{3,}/g,'\n\n')
+      .replace(/[▶⏸■🔈🔊▼▲]/g,'')
+      .replace(/[\uD83C-􏰀-\uDFFF]/g,'')
+      .replace(/[←-➿]/g,'')
+      .replace(/&amp;/g,'and').replace(/&lt;/g,'less than').replace(/&gt;/g,'greater than')
+      .replace(/&nbsp;/g,' ').replace(/&[a-z]+;/g,'')
+      .replace(/https?:\/\/[^\s]+/g,'')
+      .replace(/\[.*?\]/g,'')
+      .replace(/\(cf\.\s*/gi,'see ').replace(/\(ibid\.\)/gi,'same source')
+      .replace(/\be\.g\./gi,'for example').replace(/\bi\.e\./gi,'that is')
+      .replace(/\bvs?\./gi,'versus').replace(/\bca\./gi,'around').replace(/\bpp?\./gi,'page')
+      .replace(/\besp\./gi,'especially').replace(/\blit\./gi,'literally')
+      .replace(/([A-Z])\.([A-Z])\./g,'$1 $2')
+      .replace(/(\w)--(\w)/g,'$1, $2').replace(/(\w)—(\w)/g,'$1, $2')
+      .replace(/(\w)–(\w)/g,'$1 to $2')
+      .replace(/\s*[|]\s*/g,'. ')
+      .replace(/\n{2,}/g,'. ').replace(/\n/g,' ')
+      .replace(/ +([.!?,;:])/g,'$1')
+      .replace(/([.!?])\s*/g,'$1 ')
+      .replace(/ {2,}/g,' ')
       .trim();
   }
 
   /* ══════════════════════════════════════════════════════
-     TEXT EXTRACTION — strips UI chrome, keeps readable text
+     TEXT EXTRACTION — strips ALL UI chrome, audio buttons
   ══════════════════════════════════════════════════════ */
   function getTextOf(el) {
     const clone = el.cloneNode(true);
     clone.querySelectorAll(
       'img,canvas,svg,picture,video,audio,'+
-      '.audio-bar,.ab-mini,.ab-ham,.ab-stop-btn,'+
+      '.audio-bar,.ab-mini,.ab-ham,.ab-stop-btn,.ab-page-bar,'+
       'button,script,style,nav,'+
       '.ham-panel,.dl-modal,.cat-tabs,'+
       '.kjv-subtab-bar,.sub-tab-row,.tab-row,'+
@@ -13892,10 +13799,10 @@ window.TTS = (function() {
     let sib=h.nextElementSibling;
     while(sib){
       const tag=sib.tagName||'';
-      if(/^H[1-6]$/.test(tag)&&parseInt(tag[1])<=lvl) break;
-      if(!sib.classList.contains('audio-bar')){
+      if(/^H[1-6]$/.test(tag)&&parseInt(tag[1])<=lvl)break;
+      if(!sib.classList.contains('audio-bar')&&!sib.classList.contains('ab-page-bar')){
         const c=sib.cloneNode(true);
-        c.querySelectorAll('img,canvas,svg,.audio-bar,.ab-mini,button,script').forEach(x=>x.remove());
+        c.querySelectorAll('img,canvas,svg,.audio-bar,.ab-mini,.ab-page-bar,button,script').forEach(x=>x.remove());
         text+=(c.innerText||c.textContent||'')+' ';
       }
       sib=sib.nextElementSibling;
@@ -13909,8 +13816,9 @@ window.TTS = (function() {
   function stopUI(){
     if(activePlayBtn){
       if(activePlayBtn.classList.contains('ab-play-btn'))activePlayBtn.innerHTML='▶ Read';
+      else if(activePlayBtn.classList.contains('ab-page-btn'))activePlayBtn.innerHTML='▶ Read Page';
       else activePlayBtn.textContent='🔈';
-      activePlayBtn.classList.remove('ab-active');
+      activePlayBtn.classList.remove('ab-active','playing');
     }
     if(activeBar){
       const w=activeBar.querySelector('.ab-waves');
@@ -13918,18 +13826,19 @@ window.TTS = (function() {
       if(w)w.classList.remove('ab-vis');
       if(s)s.classList.remove('ab-vis');
     }
-    activePlayBtn=null; activeBar=null;
+    activePlayBtn=null;activeBar=null;
     const gb=document.getElementById('tts-btn');
     if(gb){gb.textContent='🔈';gb.classList.remove('playing');}
   }
 
   function stopAll(){
-    brianAborted=true;
+    ttsGen++; // ← KEY FIX: invalidates every pending Brian/WSA callback
     if(currentBrianAudio){
-      try{currentBrianAudio.pause();currentBrianAudio.src='';}catch(e){}
+      try{currentBrianAudio.pause();}catch(e){}
       currentBrianAudio=null;
     }
-    currentBrianQueue.forEach(a=>{try{a.src='';}catch(e){}});
+    // pause only — no src='' (that triggers onerror which restarted old speech)
+    currentBrianQueue.forEach(a=>{try{a.pause();}catch(e){}});
     currentBrianQueue=[];
     if(window.speechSynthesis)speechSynthesis.cancel();
     isPaused=false;
@@ -13937,13 +13846,12 @@ window.TTS = (function() {
   }
 
   function startUI(btn,bar){
-    stopAll();
-    brianAborted=false;
-    activePlayBtn=btn; activeBar=bar;
+    stopAll(); // ttsGen is now incremented
+    activePlayBtn=btn;activeBar=bar;
     if(btn){
-      // Show PAUSE icon while playing so user knows click = pause
-      if(btn.classList.contains('ab-play-btn'))btn.innerHTML='⏸ Pause';
-      else btn.textContent='⏸';
+      if(btn.classList.contains('ab-play-btn')||btn.classList.contains('ab-page-btn'))
+        btn.innerHTML='⏸ Pause';
+      else{btn.textContent='⏸';btn.classList.add('playing');}
       btn.classList.add('ab-active');
     }
     if(bar){
@@ -13964,17 +13872,10 @@ window.TTS = (function() {
   })();
 
   const MALE_UK_PREF=[
-    'Google UK English Male',
-    'Microsoft Ryan Online (Natural)',
-    'Microsoft George Online (Natural)',
-    'Microsoft George',
-    'Daniel',
-    'Arthur',
-    'Oliver',
-    'Harry',
-    'James',
-    'Microsoft David',
-    'Microsoft Mark',
+    'Google UK English Male','Microsoft Ryan Online (Natural)',
+    'Microsoft George Online (Natural)','Microsoft George',
+    'Daniel','Arthur','Oliver','Harry','James',
+    'Microsoft David','Microsoft Mark',
   ];
 
   function getBestMaleVoice(){
@@ -13987,64 +13888,57 @@ window.TTS = (function() {
     return voices.find(x=>/david|mark|ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name))||null;
   }
 
-  function speakWSA(text,onEnd){
+  function speakWSA(text,myGen,onEnd){
     const synth=window.speechSynthesis;
-    if(!synth){onEnd();return;}
+    if(!synth||ttsGen!==myGen){if(ttsGen===myGen)onEnd();return;}
     if(synth.speaking||synth.pending)synth.cancel();
     const MAX=460;
-    // Split on sentence boundaries for natural phrasing, no mid-sentence pauses
     const sentences=text.replace(/([.!?])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
-    const chunks=[];
-    let buf='';
+    const chunks=[];let buf='';
     for(const s of sentences){
       const c=(buf?buf+' ':'')+s;
       if(c.length>MAX&&buf){chunks.push(buf);buf=s;}else buf=c;
     }
     if(buf)chunks.push(buf);
-    if(!chunks.length){onEnd();return;}
+    if(!chunks.length){if(ttsGen===myGen)onEnd();return;}
     let idx=0;
     const voice=getBestMaleVoice();
     function next(){
+      if(ttsGen!==myGen)return; // generation guard
       if(idx>=chunks.length){onEnd();return;}
       const utt=new SpeechSynthesisUtterance(chunks[idx++]);
-      utt.lang='en-GB';
-      utt.rate=0.90;   // natural pace — not too slow
-      utt.pitch=0.88;
-      utt.volume=1;
+      utt.lang='en-GB';utt.rate=0.90;utt.pitch=0.88;utt.volume=1;
       if(voice)utt.voice=voice;
       utt.onend=next;
-      utt.onerror=function(){if(idx<chunks.length)next();else onEnd();};
+      utt.onerror=function(){if(ttsGen===myGen&&idx<chunks.length)next();else if(ttsGen===myGen)onEnd();};
       synth.speak(utt);
     }
     if(synth.getVoices().length>0){next();}
     else{
       let done=false;
-      function go(){if(done)return;done=true;synth.onvoiceschanged=null;clearInterval(poll);next();}
+      function go(){if(done||ttsGen!==myGen)return;done=true;synth.onvoiceschanged=null;clearInterval(poll);next();}
       synth.onvoiceschanged=go;
       const poll=setInterval(function(){if(synth.getVoices().length>0)go();},80);
-      setTimeout(function(){clearInterval(poll);if(!done){done=true;next();}},3000);
+      setTimeout(function(){clearInterval(poll);if(!done&&ttsGen===myGen){done=true;next();}},3000);
     }
   }
 
   /* ══════════════════════════════════════════════════════
      STREAMELEMENTS BRIAN (Amazon Polly UK Male)
-     — with look-ahead preloading to eliminate inter-chunk gaps
+     Preloads ALL chunks immediately — minimal inter-chunk gap
+     Generation-safe: every callback checks ttsGen===myGen
   ══════════════════════════════════════════════════════ */
   const BRIAN_BASE='https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=';
   const BRIAN_MAX=190;
 
   function chunkText(text,maxLen){
-    // Split on sentence boundaries first, then join into maxLen-char chunks
-    // Respect commas / semicolons as secondary split points only when needed
     const sentences=text.replace(/([.!?])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
-    const chunks=[];
-    let buf='';
+    const chunks=[];let buf='';
     for(const s of sentences){
       const candidate=(buf?buf+' ':'')+s;
       if(candidate.length<=maxLen){buf=candidate;}
       else{
         if(buf)chunks.push(buf);
-        // If the single sentence is still too long, split at commas
         if(s.length>maxLen){
           const parts=s.split(/(?<=[,;])\s+/);
           let sub='';
@@ -14063,66 +13957,33 @@ window.TTS = (function() {
 
   function makeBrianAudio(chunk){
     const a=new Audio(BRIAN_BASE+encodeURIComponent(chunk));
-    a.preload='auto';   // browser fetches while previous chunk plays
+    a.preload='auto';
     return a;
   }
 
-  function speakBrian(text,onEnd){
+  function speakBrian(text,myGen,onEnd){
+    if(ttsGen!==myGen)return;
     const chunks=chunkText(text,BRIAN_MAX);
-    if(!chunks.length){onEnd();return;}
-
+    if(!chunks.length){if(ttsGen===myGen)onEnd();return;}
+    // Preload ALL chunks immediately for near-gapless playback
+    currentBrianQueue=chunks.map(makeBrianAudio);
     let idx=0;
-    let brianFails=0;
-    currentBrianQueue=[];
-
-    // Pre-load first two chunks immediately
-    for(let i=0;i<Math.min(2,chunks.length);i++){
-      currentBrianQueue.push(makeBrianAudio(chunks[i]));
-    }
-
     function playNext(){
-      if(brianAborted)return;
+      if(ttsGen!==myGen)return; // generation guard — abort immediately
       if(idx>=chunks.length){onEnd();return;}
-
-      // Get from preloaded queue
-      const audio=currentBrianQueue[idx]||makeBrianAudio(chunks[idx]);
+      const audio=currentBrianQueue[idx];
       currentBrianAudio=audio;
       idx++;
-
-      // Pre-load the chunk after next (look-ahead by 2)
-      const preloadIdx=idx+1;
-      if(preloadIdx<chunks.length&&!currentBrianQueue[preloadIdx]){
-        currentBrianQueue[preloadIdx]=makeBrianAudio(chunks[preloadIdx]);
-      }
-
-      let settled=false,timer=null;
-      function done(){
-        if(settled)return;settled=true;
-        if(timer){clearTimeout(timer);timer=null;}
-        if(!brianAborted)playNext();
-      }
-      function fail(){
-        if(settled)return;settled=true;
-        if(timer){clearTimeout(timer);timer=null;}
-        brianFails++;
-        if(brianFails>=2){
-          // Fall back to Web Speech API for remainder
-          const remaining=chunks.slice(idx-1).join(' ');
-          speakWSA(remaining,onEnd);
-        }else if(!brianAborted){
-          playNext();
-        }
-      }
-      audio.onended=done;
-      audio.onerror=fail;
-      timer=setTimeout(fail,6000);
+      audio.onended=function(){if(ttsGen===myGen)playNext();};
+      audio.onerror=function(){
+        if(ttsGen!==myGen)return;
+        speakWSA(chunks.slice(idx-1).join(' '),myGen,onEnd);
+      };
       audio.play().catch(function(){
-        if(timer){clearTimeout(timer);}
-        settled=true;
-        speakWSA(chunks.slice(idx-1).join(' '),onEnd);
+        if(ttsGen!==myGen)return;
+        speakWSA(chunks.slice(idx-1).join(' '),myGen,onEnd);
       });
     }
-
     playNext();
   }
 
@@ -14130,19 +13991,16 @@ window.TTS = (function() {
      MAIN speak() — Brian primary, WSA fallback
   ══════════════════════════════════════════════════════ */
   function speak(text,btn,bar){
-    if(!text)return;
+    if(!text||!text.trim())return;
 
     // Same button + paused → RESUME
     if(activePlayBtn===btn&&isPaused){
-      if(currentBrianAudio){
-        currentBrianAudio.play().catch(function(){});
-      }else if(window.speechSynthesis&&speechSynthesis.paused){
-        speechSynthesis.resume();
-      }
+      if(currentBrianAudio)currentBrianAudio.play().catch(function(){});
+      else if(window.speechSynthesis&&speechSynthesis.paused)speechSynthesis.resume();
       isPaused=false;
       if(btn){
-        // Show PAUSE icon — playback is now running
-        if(btn.classList.contains('ab-play-btn'))btn.innerHTML='⏸ Pause';
+        if(btn.classList.contains('ab-play-btn')||btn.classList.contains('ab-page-btn'))
+          btn.innerHTML='⏸ Pause';
         else{btn.textContent='⏸';btn.classList.add('playing');}
       }
       if(activeBar){const w=activeBar.querySelector('.ab-waves');if(w)w.classList.add('ab-vis');}
@@ -14151,35 +14009,42 @@ window.TTS = (function() {
 
     // Same button + playing → PAUSE
     if(activePlayBtn===btn&&!isPaused){
-      if(currentBrianAudio){currentBrianAudio.pause();}
-      else if(window.speechSynthesis){speechSynthesis.pause();}
+      if(currentBrianAudio)currentBrianAudio.pause();
+      else if(window.speechSynthesis)speechSynthesis.pause();
       isPaused=true;
       if(btn){
-        // Show RESUME icon — playback is now paused
-        if(btn.classList.contains('ab-play-btn'))btn.innerHTML='▶ Resume';
+        if(btn.classList.contains('ab-play-btn')||btn.classList.contains('ab-page-btn'))
+          btn.innerHTML='▶ Resume';
         else btn.textContent='▶';
       }
       if(activeBar){const w=activeBar.querySelector('.ab-waves');if(w)w.classList.remove('ab-vis');}
       return;
     }
 
-    // New button → stop previous, start new
+    // New button → stop everything, start fresh
     startUI(btn,bar);
-    isPaused=false;
-    const onEnd=()=>{isPaused=false;currentBrianAudio=null;currentBrianQueue=[];stopUI();};
-    try{speakBrian(text,onEnd);}catch(e){speakWSA(text,onEnd);}
+    const myGen=ttsGen; // capture current generation
+    const onEnd=()=>{
+      if(ttsGen!==myGen)return; // stale — newer session running
+      isPaused=false;currentBrianAudio=null;currentBrianQueue=[];
+      stopUI();
+    };
+    try{speakBrian(text,myGen,onEnd);}
+    catch(e){speakWSA(text,myGen,onEnd);}
   }
 
   /* ══════════════════════════════════════════════════════
      BUTTON FACTORIES
   ══════════════════════════════════════════════════════ */
-  function makeBar(el,lbl,top){
+
+  // Standard audio bar — card, section, subsection
+  function makeBar(el,lbl){
     const bar=document.createElement('div');
-    bar.className='audio-bar'+(top?' ab-top':'');
+    bar.className='audio-bar';
     bar.innerHTML=
       '<button class="ab-play-btn">▶ Read</button>'+
       '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<div class="ab-lbl">'+(lbl||'').replace(/</g,'&lt;').slice(0,52)+'</div>'+
+      '<div class="ab-lbl">'+(lbl||'').replace(/[<>]/g,'').slice(0,52)+'</div>'+
       '<button class="ab-stop-btn" title="Stop">■</button>';
     const pb=bar.querySelector('.ab-play-btn');
     const sb=bar.querySelector('.ab-stop-btn');
@@ -14193,24 +14058,7 @@ window.TTS = (function() {
     return bar;
   }
 
-  function makeMini(textOrFn){
-    const btn=document.createElement('button');
-    btn.className='ab-mini';btn.textContent='🔈';btn.title='Read aloud';
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const text=typeof textOrFn==='function'?textOrFn():textOrFn;
-      speak(text,btn,null);
-    });
-    return btn;
-  }
-
-  function makeHam(text){
-    const btn=document.createElement('button');
-    btn.className='ab-ham';btn.textContent='🔈';btn.title='Read';
-    btn.addEventListener('click',e=>{e.stopPropagation();speak(text,btn,null);});
-    return btn;
-  }
-
+  // Top-of-panel "Play All" bar
   function makeGroupBar(container,label){
     const bar=document.createElement('div');
     bar.className='audio-bar ab-top';
@@ -14218,7 +14066,7 @@ window.TTS = (function() {
     bar.innerHTML=
       '<button class="ab-play-btn" style="font-weight:600">▶ Play All</button>'+
       '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<div class="ab-lbl">'+(label||'').replace(/</g,'&lt;').slice(0,56)+'</div>'+
+      '<div class="ab-lbl">'+(label||'').replace(/[<>]/g,'').slice(0,56)+'</div>'+
       '<button class="ab-stop-btn" title="Stop">■</button>';
     const pb=bar.querySelector('.ab-play-btn');
     const sb=bar.querySelector('.ab-stop-btn');
@@ -14232,16 +14080,81 @@ window.TTS = (function() {
     return bar;
   }
 
+  // Page-level "Read Page" bar — reads the full visible subsection/page
+  function makePageBar(el,label){
+    const bar=document.createElement('div');
+    bar.className='audio-bar ab-page-bar';
+    bar.style.cssText=
+      'background:linear-gradient(135deg,rgba(90,60,160,.15),rgba(60,120,200,.10));'+
+      'border:1px solid rgba(140,100,255,.30);border-radius:8px;'+
+      'margin:0 0 16px 0;padding:7px 12px;display:flex;align-items:center;gap:10px;';
+    bar.innerHTML=
+      '<button class="ab-page-btn" style="background:rgba(110,70,200,.20);border:1px solid rgba(150,110,255,.40);'+
+      'color:var(--text);border-radius:6px;padding:5px 14px;cursor:pointer;font-size:13px;'+
+      'font-weight:700;white-space:nowrap;flex-shrink:0">▶ Read Page</button>'+
+      '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '<div class="ab-lbl" style="flex:1;font-size:12px;opacity:.70;overflow:hidden;'+
+      'white-space:nowrap;text-overflow:ellipsis">'+(label||'Read full page').replace(/[<>]/g,'').slice(0,60)+'</div>'+
+      '<button class="ab-stop-btn" title="Stop">■</button>';
+    const pb=bar.querySelector('.ab-page-btn');
+    const sb=bar.querySelector('.ab-stop-btn');
+    let cache=null;
+    pb.addEventListener('click',function(e){
+      e.stopPropagation();e.preventDefault();
+      if(!cache)cache=getTextOf(el);
+      speak(cache,pb,bar);
+    });
+    sb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();stopAll();});
+    return bar;
+  }
+
+  // Inline mini 🔈 on headings
+  function makeMini(textOrFn){
+    const btn=document.createElement('button');
+    btn.className='ab-mini';btn.textContent='🔈';btn.title='Read aloud';
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();e.preventDefault();
+      const text=typeof textOrFn==='function'?textOrFn():textOrFn;
+      speak(text,btn,null);
+    });
+    return btn;
+  }
+
+  // Hamburger menu item 🔈
+  function makeHam(text){
+    const btn=document.createElement('button');
+    btn.className='ab-ham';btn.textContent='🔈';btn.title='Read';
+    btn.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();speak(text,btn,null);});
+    return btn;
+  }
+
   /* ══════════════════════════════════════════════════════
      INJECTION — attaches audio buttons to every element type
+     Button hierarchy:
+       🔈 card header (mini)       — reads card
+       ▶ Play All (group bar)     — reads ctx-card body
+       ▶ Read (section bar)       — reads ctx-section / card-sm / box
+       ▶ Read Page (page bar)     — reads full sub-section / panel
+       🔈 heading mini             — reads heading + following siblings
+       🔈 ham-item                 — reads menu item text
+       🔈 floating #tts-btn        — reads entire active page
   ══════════════════════════════════════════════════════ */
   function SKIP(el){
-    return el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,#tts-btn,#tts-tooltip');
+    return el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,.ab-page-bar,#tts-btn,#tts-tooltip');
   }
 
   function injectEl(root){
 
-    /* ── 1. ctx-card: mini speaker on header + Play All on body ── */
+    /* ── 0. Page-level: "Read Page" at top of every sub-section/panel ── */
+    root.querySelectorAll('.sub-section,.sub-panel,.cat-panel,.content-panel,.kjv-panel').forEach(panel=>{
+      if(panel.dataset.abPage)return;
+      panel.dataset.abPage='1';
+      const h=panel.querySelector('h2,h3,h4,.section-label,.ctx-section-label');
+      const lbl=h?(h.innerText||'').trim().replace(/🔈/g,'').slice(0,60):'Read full page';
+      panel.insertBefore(makePageBar(panel,lbl),panel.firstChild);
+    });
+
+    /* ── 1. ctx-card: mini on header + Play All on body ── */
     root.querySelectorAll('.ctx-card').forEach(card=>{
       if(card.dataset.ab)return;
       card.dataset.ab='1';
@@ -14266,7 +14179,7 @@ window.TTS = (function() {
     root.querySelectorAll('.ctx-section').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('.ctx-section-label,.ctx-section-title')||{}).innerText||'';
+      const lbl=(el.querySelector('.ctx-section-label,.ctx-section-title')||{}).innerText||'Section';
       el.appendChild(makeBar(el,lbl));
     });
 
@@ -14274,12 +14187,12 @@ window.TTS = (function() {
     root.querySelectorAll('.card-sm').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('.ctx-section-label,.ctx-section-title')||{}).innerText||'';
+      const lbl=(el.querySelector('h4,h5,.ctx-section-label,.card-title')||{}).innerText||'';
       el.appendChild(makeBar(el,lbl));
     });
 
-    /* ── 4. Styled inline boxes inside ctx-body (vb blocks, highlight blocks, case-study boxes) ── */
-    root.querySelectorAll('.ctx-body > div[style], .ctx-section > div[style]').forEach(el=>{
+    /* ── 4. Inline styled boxes (case study, highlight, vb) ── */
+    root.querySelectorAll('.ctx-body > div[style],.ctx-section > div[style]').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       if(el.classList.contains('ctx-section')||el.classList.contains('ctx-grid'))return;
       if(el.querySelector('.ctx-card,.audio-bar'))return;
@@ -14287,8 +14200,9 @@ window.TTS = (function() {
       if(!s.includes('border')&&!s.includes('background'))return;
       if((el.innerText||'').trim().length<20)return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('[style*="uppercase"],[style*="text-transform"]')||{}).innerText||
-                (el.querySelector('[style*="font-weight:700"],[style*="font-weight:600"]')||{}).innerText||'';
+      const lbl=(el.querySelector('[style*="uppercase"],[style*="text-transform"]')||
+                 el.querySelector('[style*="font-weight:700"],[style*="font-weight:600"]')||
+                 {}).innerText||'';
       el.appendChild(makeBar(el,(lbl||'Block').slice(0,52)));
     });
 
@@ -14296,7 +14210,7 @@ window.TTS = (function() {
     root.querySelectorAll('.example-box,.misapp-box').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('.ex-label,.mis-label')||{}).innerText||'';
+      const lbl=(el.querySelector('.ex-label,.mis-label')||{}).innerText||'Example';
       el.appendChild(makeBar(el,lbl));
     });
 
@@ -14314,7 +14228,7 @@ window.TTS = (function() {
       el.appendChild(makeBar(el,''));
     });
 
-    /* ── 8. All named card classes not inside ctx-body ── */
+    /* ── 8. Named card classes ── */
     const CARD_SEL=[
       '.card','.lexicon-card','.scholar-card','.home-card','.lex-card','.glos-card',
       '.principle-card','.error-card','.argument-card','.stat-box','.verdict-box',
@@ -14336,44 +14250,28 @@ window.TTS = (function() {
       el.appendChild(makeBar(el,''));
     });
 
-    /* ── 10. KJV panels — Play All at top ── */
-    root.querySelectorAll('.kjv-panel').forEach(panel=>{
-      if(panel.dataset.ab)return;
-      panel.dataset.ab='1';
-      panel.insertBefore(makeGroupBar(panel,'Read entire section'),panel.firstChild);
-    });
-
-    /* ── 11. sub-panel, cat-panel, content-panel — Play All at top ── */
-    root.querySelectorAll('.sub-panel,.cat-panel,.content-panel').forEach(panel=>{
-      if(panel.dataset.ab)return;
-      panel.dataset.ab='1';
-      const h=panel.querySelector('h2,h3,h4,h5,.section-label');
-      const lbl=h?(h.innerText||'').slice(0,56):'Read entire section';
-      panel.insertBefore(makeGroupBar(panel,lbl),panel.firstChild);
-    });
-
-    /* ── 12. h2/h3/h4 not in card headers — inline mini speaker ── */
+    /* ── 10. h2/h3/h4 — inline mini speaker ── */
     root.querySelectorAll('h2,h3,h4').forEach(h=>{
       if(h.dataset.ab||SKIP(h))return;
-      if(h.closest('.ctx-card-header,.sub-tab-row,.kjv-subtab-bar,.tab-row,.cat-tabs,.audio-bar'))return;
+      if(h.closest('.ctx-card-header,.sub-tab-row,.kjv-subtab-bar,.tab-row,.cat-tabs,.audio-bar,.ab-page-bar'))return;
       h.dataset.ab='1';
       h.appendChild(makeMini(()=>getHeadingBlock(h)));
     });
 
-    /* ── 13. h5 inline mini ── */
+    /* ── 11. h5 — inline mini speaker ── */
     root.querySelectorAll('h5').forEach(h=>{
       if(h.dataset.ab||SKIP(h))return;
-      if(h.closest('.audio-bar,.cat-tabs'))return;
+      if(h.closest('.audio-bar,.cat-tabs,.ab-page-bar'))return;
       h.dataset.ab='1';
       h.appendChild(makeMini(()=>getHeadingBlock(h)));
     });
 
-    /* ── 14. Top-level styled divs on .page ── */
-    root.querySelectorAll('.page > .container > div,.page > .container > section,'+
-                          '.kjv-panel > div[style],.cat-panel > div[style]').forEach(div=>{
+    /* ── 12. Top-level styled divs on .page ── */
+    root.querySelectorAll('.page > .container > div,.page > .container > section').forEach(div=>{
       if(div.dataset.ab||SKIP(div))return;
       if(div.matches(CARD_SEL)||div.classList.contains('cat-panel')||
-         div.classList.contains('kjv-panel')||div.classList.contains('audio-bar'))return;
+         div.classList.contains('kjv-panel')||div.classList.contains('audio-bar')||
+         div.classList.contains('ab-page-bar')||div.classList.contains('sub-panel'))return;
       if(div.querySelector('.ctx-card,.card,.lexicon-card,.audio-bar'))return;
       const s=div.getAttribute('style')||'';
       if(!s.includes('border')&&!s.includes('background'))return;
@@ -14383,7 +14281,7 @@ window.TTS = (function() {
       div.appendChild(makeBar(div,h?(h.innerText||'').slice(0,52):''));
     });
 
-    /* ── 15. Hamburger menu items ── */
+    /* ── 13. Hamburger menu items ── */
     root.querySelectorAll('.ham-item').forEach(item=>{
       if(item.dataset.ab)return;
       item.dataset.ab='1';
@@ -14393,7 +14291,7 @@ window.TTS = (function() {
       item.appendChild(makeHam(text));
     });
 
-    /* ── 16. Dropdown items ── */
+    /* ── 14. Dropdown items ── */
     root.querySelectorAll('.dropdown-item').forEach(item=>{
       if(item.dataset.ab)return;
       item.dataset.ab='1';
@@ -14405,16 +14303,18 @@ window.TTS = (function() {
   }
 
   /* ══════════════════════════════════════════════════════
-     FULL-SITE INJECTION  (runs at page load + on nav)
+     FULL-SITE INJECTION
   ══════════════════════════════════════════════════════ */
   function inject(){
-    document.querySelectorAll('.audio-bar:not([data-static]),.ab-mini,.ab-ham').forEach(el=>el.remove());
-    document.querySelectorAll('[data-ab]').forEach(el=>{delete el.dataset.ab;});
+    document.querySelectorAll('.audio-bar:not([data-static]),.ab-mini,.ab-ham,.ab-page-bar').forEach(el=>el.remove());
+    document.querySelectorAll('[data-ab],[data-ab-page]').forEach(el=>{
+      delete el.dataset.ab;delete el.dataset.abPage;
+    });
     injectEl(document);
   }
 
   /* ══════════════════════════════════════════════════════
-     GLOBAL FLOATING BUTTON (read current page)
+     GLOBAL FLOATING BUTTON (read entire active page)
   ══════════════════════════════════════════════════════ */
   function initGlobalBtn(){
     const btn=document.getElementById('tts-btn');
@@ -14422,8 +14322,8 @@ window.TTS = (function() {
     btn.dataset.ab='1';btn.textContent='🔈';
     let dragging=false,moved=false,sx,sy,sl,st;
     function sd(cx,cy){const r=btn.getBoundingClientRect();sx=cx;sy=cy;sl=r.left;st=r.top;btn.style.right='auto';btn.style.bottom='auto';btn.style.left=sl+'px';btn.style.top=st+'px';dragging=true;moved=false;}
-    function dd(cx,cy){if(!dragging)return;const dx=cx-sx,dy=cy-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;btn.style.left=Math.max(8,Math.min(innerWidth-btn.offsetWidth-8,sl+dx))+'px';btn.style.top=Math.max(68,Math.min(innerHeight-btn.offsetHeight-8,st+dy))+'px';}
-    function ed(){if(!moved){const page=document.querySelector('.page.active');const text=page?getTextOf(page):'';if(activePlayBtn===btn){stopAll();}else{speak(text,btn,null);btn.textContent='🔊';btn.classList.add('playing');}}dragging=false;}
+    function dd(cx,cy){if(!dragging)return;const dx=cx-sx,dy=cy-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;btn.style.left=Math.max(8,Math.min(innerWidth-btn.offsetWidth-8,sl+dx))+'px';btn.style.top=Math.max(8,Math.min(innerHeight-btn.offsetHeight-8,st+dy))+'px';}
+    function ed(){if(!moved){const page=document.querySelector('.page.active,.sub-section.active');const text=page?getTextOf(page):'';if(activePlayBtn===btn){stopAll();}else{speak(text,btn,null);btn.textContent='🔊';btn.classList.add('playing');}}dragging=false;moved=false;}
     btn.addEventListener('mousedown',e=>{e.preventDefault();sd(e.clientX,e.clientY);});
     document.addEventListener('mousemove',e=>{if(dragging)dd(e.clientX,e.clientY);});
     document.addEventListener('mouseup',()=>{if(dragging)ed();});
