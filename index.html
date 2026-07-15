@@ -12707,98 +12707,188 @@ document.addEventListener('keydown', function(e) {
 // AUDIO ENGINE v3 — full-site, every element, UK English Male
 // ═══════════════════════════════════════════════════════
 window.TTS = (function() {
-  const VOICE = 'UK English Male';
   let activePlayBtn = null;
   let activeBar     = null;
   let isPaused      = false;
-  let currentBrianAudio = null;
+  let currentBrianAudio  = null;
+  let currentBrianQueue  = [];   // pre-loaded Audio objects
+  let brianAborted  = false;
 
-  /* ── Text normalizer — fixes hyphens, dashes, abbreviations for TTS ── */
-  function cleanText(raw){
+  /* ══════════════════════════════════════════════════════
+     TEXT NORMALISER — biblical, Greek, Hebrew, scholarly
+  ══════════════════════════════════════════════════════ */
+  function cleanText(raw) {
     return raw
-      // Scripture verse ranges: "8:1-13" → "chapter 8, verses 1 through 13"
-      .replace(/(\d+):(\d+)[\u2013\u2014\-](\d+)/g,'chapter $1, verses $2 through $3')
-      // Page ranges: "pp. 107–116" → "pages 107 through 116"
-      .replace(/pp?\.?\s*(\d+)[\u2013\u2014\-](\d+)/g,'pages $1 through $2')
-      // Volume ranges: "Vols. 1-2" → "Volumes 1 through 2"
-      .replace(/[Vv]ols?\.?\s*(\d+)[\u2013\u2014\-](\d+)/g,'Volumes $1 through $2')
-      // Ordinal ranges: "18th-19th century" → "18th through 19th century"
-      .replace(/(\d+(?:st|nd|rd|th))[\u2013\u2014\-](\d+(?:st|nd|rd|th))/gi,'$1 through $2')
-      // Year ranges: "1845-1900" → "1845 through 1900"
-      .replace(/(\d{4})[\u2013\u2014\-](\d{4})/g,'$1 through $2')
-      // Remaining numeric ranges: "1-10" → "1 through 10"
-      .replace(/(\d+)[\u2013\u2014\-](\d+)/g,'$1 through $2')
-      // Em dash / en dash → comma-space (natural spoken pause)
-      .replace(/\s*[\u2013\u2014]\s*/g,', ')
-      // Hyphenated compound words: "well-known" → "well known", "co-text" → "co text"
-      .replace(/([A-Za-z]+)-([A-Za-z]+)/g,'$1 $2')
-      // Emoji and special symbols that TTS mispronounces
-      .replace(/[⚖📌⚠🔤🏛✍⛪📋🌍📍🧭🎯📖🔑▶■●◆★⁺①②③④⑤]/g,'')
+      /* ── remove non-Latin scripts that TTS mispronounces ── */
+      // Greek polytonic / monotonic block (U+0370–U+03FF, U+1F00–U+1FFF)
+      .replace(/[Ͱ-Ͽἀ-῿]+/g, '')
+      // Hebrew block (U+0590–U+05FF)
+      .replace(/[֐-׿]+/g, '')
+      // Combining diacritics (U+0300–U+036F)
+      .replace(/[̀-ͯ]/g, '')
+      // Macrons on vowels → plain ASCII (diathēkē → diatheke, etc.)
+      .replace(/[āĀ]/g,'a').replace(/[ēĒ]/g,'e').replace(/[īĪ]/g,'i')
+      .replace(/[ōŌ]/g,'o').replace(/[ūŪ]/g,'u')
+      // Diacritical Latin letters common in transliteration
+      .replace(/[çÇ]/g,'s').replace(/[ṭ]/g,'t').replace(/[ḥ]/g,'h')
+      .replace(/[šŠ]/g,'sh').replace(/[ẓ]/g,'z').replace(/[ḏ]/g,'d')
+
+      /* ── emoji / symbols ── */
+      .replace(/[⚖📌⚠🔤🏛✍⛪📋🌍📍🧭🎯📖🔑▶■●◆★⁺①②③④⑤§©®™°]/g,'')
       .replace(/[\u{1F300}-\u{1FFFF}]/gu,'')
-      // Common abbreviations
+
+      /* ── Scripture ranges: "8:1-13" → "chapter 8, verses 1 through 13" ── */
+      .replace(/(\d+):(\d+)[–—\-](\d+)/g,'chapter $1, verses $2 through $3')
+      // Single verse ref: "8:1" → "chapter 8, verse 1"
+      .replace(/(\d+):(\d+)/g,'chapter $1, verse $2')
+
+      /* ── Page / volume / ordinal / year ranges ── */
+      .replace(/\bpp?\.?\s*(\d+)[–—\-](\d+)/g,'pages $1 through $2')
+      .replace(/\b[Vv]ols?\.?\s*(\d+)[–—\-](\d+)/g,'Volumes $1 through $2')
+      .replace(/(\d+(?:st|nd|rd|th))[–—\-](\d+(?:st|nd|rd|th))/gi,'$1 through $2')
+      .replace(/(\d{4})[–—\-](\d{4})/g,'$1 through $2')
+      .replace(/(\d+)[–—\-](\d+)/g,'$1 through $2')
+
+      /* ── Dashes → natural comma pause ── */
+      .replace(/\s*[–—]\s*/g,', ')
+
+      /* ── Biblical / scholarly abbreviations ── */
+      .replace(/\bKJV\b/g,'King James Version')
+      .replace(/\bKJV\s+1611\b/g,'King James Version of 1611')
+      .replace(/\bNT\b/g,'New Testament')
+      .replace(/\bOT\b/g,'Old Testament')
+      .replace(/\bLXX\b/g,'Septuagint')
+      .replace(/\bMT\b/g,'Masoretic Text')
+      .replace(/\bDSS\b/g,'Dead Sea Scrolls')
+      .replace(/\bBCE\b/g,'Before the Common Era')
+      .replace(/\bCE\b(?!\w)/g,'of the Common Era')
+      .replace(/\bHeb\.\s*/g,'Hebrews ')
+      .replace(/\bGal\.\s*/g,'Galatians ')
+      .replace(/\bRom\.\s*/g,'Romans ')
+      .replace(/\bEph\.\s*/g,'Ephesians ')
+      .replace(/\bCol\.\s*/g,'Colossians ')
+      .replace(/\bPhil\.\s*/g,'Philippians ')
+      .replace(/\b1\s*Cor\.\s*/g,'First Corinthians ')
+      .replace(/\b2\s*Cor\.\s*/g,'Second Corinthians ')
+      .replace(/\b1\s*Pet\.\s*/g,'First Peter ')
+      .replace(/\b2\s*Pet\.\s*/g,'Second Peter ')
+      .replace(/\b1\s*Tim\.\s*/g,'First Timothy ')
+      .replace(/\b2\s*Tim\.\s*/g,'Second Timothy ')
+      .replace(/\bDeut\.\s*/g,'Deuteronomy ')
+      .replace(/\bIsa\.\s*/g,'Isaiah ')
+      .replace(/\bJer\.\s*/g,'Jeremiah ')
+      .replace(/\bLev\.\s*/g,'Leviticus ')
+      .replace(/\bNum\.\s*/g,'Numbers ')
+      .replace(/\bGen\.\s*/g,'Genesis ')
+      .replace(/\bExod?\.\s*/g,'Exodus ')
+      .replace(/\bPs\.\s*/g,'Psalm ')
+      .replace(/\bProv\.\s*/g,'Proverbs ')
+      .replace(/\bMatt?\.\s*/g,'Matthew ')
+      .replace(/\bMk\.\s*/g,'Mark ')
+      .replace(/\bLk\.\s*/g,'Luke ')
+      .replace(/\bJn\.\s*/g,'John ')
+      .replace(/\bActs\s+(\d)/g,'Acts chapter $1')
+      .replace(/\bRev\.\s*/g,'Revelation ')
+      // Commentary series
+      .replace(/\bNICOT\b/g,'New International Commentary on the Old Testament')
+      .replace(/\bNICNT\b/g,'New International Commentary on the New Testament')
+      .replace(/\bNIGTC\b/g,'New International Greek Testament Commentary')
+      .replace(/\bNAC\b/g,'New American Commentary')
+      .replace(/\bWBC\b/g,'Word Biblical Commentary')
+      .replace(/\bTNTC\b/g,'Tyndale New Testament Commentary')
+      .replace(/\bTOTC\b/g,'Tyndale Old Testament Commentary')
+      .replace(/\bNCBC\b/g,'New Century Bible Commentary')
+      .replace(/\bIVP\b/g,'InterVarsity Press')
+      .replace(/\bETS\b/g,'Evangelical Theological Society')
+      // Latin scholarly
+      .replace(/\bibid\.\s*/gi,'in the same source, ')
+      .replace(/\bop\. cit\.\s*/gi,'in the cited work, ')
+      .replace(/\bcf\.\s*/g,'see also ')
+      .replace(/\bviz\.\s*/g,'namely, ')
+      .replace(/\bet al\.\s*/g,'and others ')
       .replace(/\be\.g\.\s*/g,'for example, ')
       .replace(/\bi\.e\.\s*/g,'that is, ')
       .replace(/\betc\.(?=\s|$)/g,'and so on')
       .replace(/\bvs\.\s*/g,'versus ')
-      .replace(/\bch\.\s*/g,'chapter ')
-      .replace(/\bvv?\.\s*/g,'verse ')
       .replace(/\bca\.\s*/g,'circa ')
-      .replace(/\bKJV\b/g,'King James Version')
-      .replace(/\bNT\b/g,'New Testament')
-      .replace(/\bOT\b/g,'Old Testament')
-      // Punctuation tidying: multiple punctuation, ellipsis pause
+      .replace(/\bc\.\s*(\d{3,4})/g,'circa $1')
+      // Single-letter scholarly abbreviations
+      .replace(/\bch\.\s*/g,'chapter ')
+      .replace(/\bvv\.\s*/g,'verses ')
+      .replace(/\bv\.\s+(?=\d)/g,'verse ')
+      .replace(/\bp\.\s+(?=\d)/g,'page ')
+      .replace(/\bpp\.\s+(?=\d)/g,'pages ')
+      .replace(/\bvol\.\s*/gi,'volume ')
+      .replace(/\bed\.\s+/gi,'edition, ')
+      .replace(/\btrans\.\s+/gi,'translated by ')
+      .replace(/\brev\.\s+ed\b/gi,'revised edition')
+
+      /* ── Hyphenated compounds → space (after range replacement so "1-10" is safe) ── */
+      .replace(/([A-Za-z]{2,})-([A-Za-z]{2,})/g,'$1 $2')
+
+      /* ── Punctuation tidying ── */
       .replace(/\.{2,}/g,'. ')
-      // Collapse whitespace but preserve sentence breaks
+      // Remove stray asterisks, underscores, backticks
+      .replace(/[*_`]/g,'')
+      // Multiple punctuation collapse
+      .replace(/([,;:]){2,}/g,'$1')
+      // Space before punctuation
+      .replace(/\s+([,;:.!?])/g,'$1')
+      // Ensure space after sentence-ending punctuation
+      .replace(/([.!?;])([A-Z])/g,'$1 $2')
+
+      /* ── Whitespace ── */
       .replace(/[ \t]+/g,' ')
       .replace(/\n{3,}/g,'\n\n')
       .trim();
   }
 
-  /* ── Text extraction — no images, no UI chrome ── */
+  /* ══════════════════════════════════════════════════════
+     TEXT EXTRACTION — strips UI chrome, keeps readable text
+  ══════════════════════════════════════════════════════ */
   function getTextOf(el) {
     const clone = el.cloneNode(true);
     clone.querySelectorAll(
-      'img,canvas,svg,picture,video,audio,' +
-      '.audio-bar,.ab-mini,.ab-ham,.ab-stop-btn,' +
-      'button,script,style,nav,' +
-      '.ham-panel,.dl-modal,.cat-tabs,' +
-      '.kjv-subtab-bar,.sub-tab-row,.tab-row,' +
+      'img,canvas,svg,picture,video,audio,'+
+      '.audio-bar,.ab-mini,.ab-ham,.ab-stop-btn,'+
+      'button,script,style,nav,'+
+      '.ham-panel,.dl-modal,.cat-tabs,'+
+      '.kjv-subtab-bar,.sub-tab-row,.tab-row,'+
       '[aria-hidden="true"]'
-    ).forEach(x => x.remove());
-    const raw = (clone.innerText || clone.textContent || '').replace(/\s{3,}/g,'\n\n').trim();
+    ).forEach(x=>x.remove());
+    const raw=(clone.innerText||clone.textContent||'').replace(/\s{3,}/g,'\n\n').trim();
     return cleanText(raw);
   }
 
   function getHeadingBlock(h) {
-    const lvl = parseInt(h.tagName[1]);
-    const clone = h.cloneNode(true);
+    const lvl=parseInt(h.tagName[1]);
+    const clone=h.cloneNode(true);
     clone.querySelectorAll('.ab-mini,.ab-ham,button').forEach(x=>x.remove());
-    let text = (clone.innerText||'') + '. ';
-    let sib = h.nextElementSibling;
-    while (sib) {
-      const tag = sib.tagName||'';
-      if (/^H[1-6]$/.test(tag) && parseInt(tag[1]) <= lvl) break;
-      if (!sib.classList.contains('audio-bar')) {
-        const c = sib.cloneNode(true);
+    let text=(clone.innerText||'')+'. ';
+    let sib=h.nextElementSibling;
+    while(sib){
+      const tag=sib.tagName||'';
+      if(/^H[1-6]$/.test(tag)&&parseInt(tag[1])<=lvl) break;
+      if(!sib.classList.contains('audio-bar')){
+        const c=sib.cloneNode(true);
         c.querySelectorAll('img,canvas,svg,.audio-bar,.ab-mini,button,script').forEach(x=>x.remove());
-        text += (c.innerText||c.textContent||'') + ' ';
+        text+=(c.innerText||c.textContent||'')+' ';
       }
-      sib = sib.nextElementSibling;
+      sib=sib.nextElementSibling;
     }
     return cleanText(text.replace(/\s{3,}/g,' ').trim());
   }
 
-  /* ── Playback UI ── */
-  function stopUI() {
-    if (activePlayBtn) {
-      if (activePlayBtn.classList.contains('ab-play-btn')) {
-        activePlayBtn.innerHTML='▶ Read';
-      } else {
-        activePlayBtn.textContent='🔈';
-      }
+  /* ══════════════════════════════════════════════════════
+     PLAYBACK UI
+  ══════════════════════════════════════════════════════ */
+  function stopUI(){
+    if(activePlayBtn){
+      if(activePlayBtn.classList.contains('ab-play-btn'))activePlayBtn.innerHTML='▶ Read';
+      else activePlayBtn.textContent='🔈';
       activePlayBtn.classList.remove('ab-active');
     }
-    if (activeBar) {
+    if(activeBar){
       const w=activeBar.querySelector('.ab-waves');
       const s=activeBar.querySelector('.ab-stop-btn');
       if(w)w.classList.remove('ab-vis');
@@ -12809,26 +12899,30 @@ window.TTS = (function() {
     if(gb){gb.textContent='🔈';gb.classList.remove('playing');}
   }
 
-  function stopAll() {
-    if (currentBrianAudio) {
-      try { currentBrianAudio.pause(); currentBrianAudio.src=''; } catch(e){}
-      currentBrianAudio = null;
+  function stopAll(){
+    brianAborted=true;
+    if(currentBrianAudio){
+      try{currentBrianAudio.pause();currentBrianAudio.src='';}catch(e){}
+      currentBrianAudio=null;
     }
-    if (window.responsiveVoice && responsiveVoice.isPlaying()) responsiveVoice.cancel();
-    if (window.speechSynthesis) speechSynthesis.cancel();
-    isPaused = false;
+    currentBrianQueue.forEach(a=>{try{a.src='';}catch(e){}});
+    currentBrianQueue=[];
+    if(window.speechSynthesis)speechSynthesis.cancel();
+    isPaused=false;
     stopUI();
   }
 
-  function startUI(btn, bar) {
+  function startUI(btn,bar){
     stopAll();
+    brianAborted=false;
     activePlayBtn=btn; activeBar=bar;
-    if (btn) {
-      if (btn.classList.contains('ab-play-btn')) btn.innerHTML='▶ Reading…';
-      else btn.textContent='🔊';
+    if(btn){
+      // Show PAUSE icon while playing so user knows click = pause
+      if(btn.classList.contains('ab-play-btn'))btn.innerHTML='⏸ Pause';
+      else btn.textContent='⏸';
       btn.classList.add('ab-active');
     }
-    if (bar) {
+    if(bar){
       const w=bar.querySelector('.ab-waves');
       const s=bar.querySelector('.ab-stop-btn');
       if(w)w.classList.add('ab-vis');
@@ -12836,63 +12930,64 @@ window.TTS = (function() {
     }
   }
 
-  // ── TTS ENGINE: StreamElements Brian (Amazon Polly UK Male) + Web Speech API fallback ──
-
-  // Pre-warm Web Speech API voice list on page load
+  /* ══════════════════════════════════════════════════════
+     WEB SPEECH API — UK Male voice (fallback)
+  ══════════════════════════════════════════════════════ */
   (function warmVoices(){
-    if(!window.speechSynthesis) return;
+    if(!window.speechSynthesis)return;
     const v=speechSynthesis.getVoices();
-    if(!v.length) speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};
+    if(!v.length)speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};
   })();
 
-  // Web Speech API: Male UK English voice priority — Chrome, Edge, Windows, macOS
   const MALE_UK_PREF=[
-    'Google UK English Male',            // Chrome
-    'Microsoft Ryan Online (Natural)',   // Edge / Windows 11
-    'Microsoft George Online (Natural)', // Edge / Windows
-    'Microsoft George',                  // Windows offline
-    'Daniel',                            // macOS
-    'Arthur',                            // macOS Monterey+
-    'Oliver',                            // macOS
-    'Harry',                             // macOS
-    'James',                             // macOS older
-    'Microsoft David',                   // US male (not female)
-    'Microsoft Mark',                    // US male
+    'Google UK English Male',
+    'Microsoft Ryan Online (Natural)',
+    'Microsoft George Online (Natural)',
+    'Microsoft George',
+    'Daniel',
+    'Arthur',
+    'Oliver',
+    'Harry',
+    'James',
+    'Microsoft David',
+    'Microsoft Mark',
   ];
 
   function getBestMaleVoice(){
-    const voices=window.speechSynthesis.getVoices();
-    for(const n of MALE_UK_PREF){const v=voices.find(x=>x.name===n);if(v) return v;}
+    const voices=window.speechSynthesis?window.speechSynthesis.getVoices():[];
+    for(const n of MALE_UK_PREF){const v=voices.find(x=>x.name===n);if(v)return v;}
     const gb=voices.filter(x=>x.lang==='en-GB'||x.lang.startsWith('en-GB'));
     const gbM=gb.find(x=>/ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name));
-    if(gbM) return gbM;
-    if(gb.length) return gb[0];
+    if(gbM)return gbM;
+    if(gb.length)return gb[0];
     return voices.find(x=>/david|mark|ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name))||null;
   }
 
-  // Web Speech API fallback — sentence-boundary chunking + async voice-load fix
-  function speakWSA(text, onEnd){
+  function speakWSA(text,onEnd){
     const synth=window.speechSynthesis;
-    if(synth.speaking||synth.pending) synth.cancel();
+    if(!synth){onEnd();return;}
+    if(synth.speaking||synth.pending)synth.cancel();
     const MAX=460;
-    // Split on sentence boundaries first for natural phrasing
-    const sentences=text.replace(/([.!?;])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
+    // Split on sentence boundaries for natural phrasing, no mid-sentence pauses
+    const sentences=text.replace(/([.!?])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
     const chunks=[];
     let buf='';
     for(const s of sentences){
       const c=(buf?buf+' ':'')+s;
-      if(c.length>MAX&&buf){chunks.push(buf);buf=s;}
-      else buf=c;
+      if(c.length>MAX&&buf){chunks.push(buf);buf=s;}else buf=c;
     }
-    if(buf) chunks.push(buf);
+    if(buf)chunks.push(buf);
     if(!chunks.length){onEnd();return;}
     let idx=0;
     const voice=getBestMaleVoice();
     function next(){
       if(idx>=chunks.length){onEnd();return;}
       const utt=new SpeechSynthesisUtterance(chunks[idx++]);
-      utt.lang='en-GB'; utt.rate=0.88; utt.pitch=0.9; utt.volume=1;
-      if(voice) utt.voice=voice;
+      utt.lang='en-GB';
+      utt.rate=0.90;   // natural pace — not too slow
+      utt.pitch=0.88;
+      utt.volume=1;
+      if(voice)utt.voice=voice;
       utt.onend=next;
       utt.onerror=function(){if(idx<chunks.length)next();else onEnd();};
       synth.speak(utt);
@@ -12907,123 +13002,176 @@ window.TTS = (function() {
     }
   }
 
-  // StreamElements TTS — Amazon Polly "Brian" (British male, free, no API key)
-  function speakBrian(text, onEnd){
-    const BASE='https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=';
-    const MAX=190;
-    // Split on sentence boundaries then join into ≤190-char chunks
-    const sentences=text.replace(/([.!?;])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
+  /* ══════════════════════════════════════════════════════
+     STREAMELEMENTS BRIAN (Amazon Polly UK Male)
+     — with look-ahead preloading to eliminate inter-chunk gaps
+  ══════════════════════════════════════════════════════ */
+  const BRIAN_BASE='https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=';
+  const BRIAN_MAX=190;
+
+  function chunkText(text,maxLen){
+    // Split on sentence boundaries first, then join into maxLen-char chunks
+    // Respect commas / semicolons as secondary split points only when needed
+    const sentences=text.replace(/([.!?])\s+/g,'$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
     const chunks=[];
     let buf='';
     for(const s of sentences){
-      const c=(buf?buf+' ':'')+s;
-      if(c.length>MAX&&buf){chunks.push(buf);buf=s;}
-      else buf=c;
+      const candidate=(buf?buf+' ':'')+s;
+      if(candidate.length<=maxLen){buf=candidate;}
+      else{
+        if(buf)chunks.push(buf);
+        // If the single sentence is still too long, split at commas
+        if(s.length>maxLen){
+          const parts=s.split(/(?<=[,;])\s+/);
+          let sub='';
+          for(const p of parts){
+            const c2=(sub?sub+' ':'')+p;
+            if(c2.length<=maxLen){sub=c2;}
+            else{if(sub)chunks.push(sub);sub=p;}
+          }
+          buf=sub;
+        }else{buf=s;}
+      }
     }
-    if(buf) chunks.push(buf);
+    if(buf)chunks.push(buf);
+    return chunks;
+  }
+
+  function makeBrianAudio(chunk){
+    const a=new Audio(BRIAN_BASE+encodeURIComponent(chunk));
+    a.preload='auto';   // browser fetches while previous chunk plays
+    return a;
+  }
+
+  function speakBrian(text,onEnd){
+    const chunks=chunkText(text,BRIAN_MAX);
     if(!chunks.length){onEnd();return;}
-    let idx=0, brianFails=0;
+
+    let idx=0;
+    let brianFails=0;
+    currentBrianQueue=[];
+
+    // Pre-load first two chunks immediately
+    for(let i=0;i<Math.min(2,chunks.length);i++){
+      currentBrianQueue.push(makeBrianAudio(chunks[i]));
+    }
+
     function playNext(){
+      if(brianAborted)return;
       if(idx>=chunks.length){onEnd();return;}
-      const chunk=chunks[idx++];
-      const audio=new Audio(BASE+encodeURIComponent(chunk));
-      currentBrianAudio = audio;
-      let settled=false, timer=null;
-      function done(){if(settled)return;settled=true;if(timer){clearTimeout(timer);timer=null;}playNext();}
+
+      // Get from preloaded queue
+      const audio=currentBrianQueue[idx]||makeBrianAudio(chunks[idx]);
+      currentBrianAudio=audio;
+      idx++;
+
+      // Pre-load the chunk after next (look-ahead by 2)
+      const preloadIdx=idx+1;
+      if(preloadIdx<chunks.length&&!currentBrianQueue[preloadIdx]){
+        currentBrianQueue[preloadIdx]=makeBrianAudio(chunks[preloadIdx]);
+      }
+
+      let settled=false,timer=null;
+      function done(){
+        if(settled)return;settled=true;
+        if(timer){clearTimeout(timer);timer=null;}
+        if(!brianAborted)playNext();
+      }
       function fail(){
-        if(settled)return;settled=true;if(timer){clearTimeout(timer);timer=null;}
+        if(settled)return;settled=true;
+        if(timer){clearTimeout(timer);timer=null;}
         brianFails++;
-        if(brianFails>=2){speakWSA(chunks.slice(idx-1).join(' '),onEnd);}
-        else playNext();
+        if(brianFails>=2){
+          // Fall back to Web Speech API for remainder
+          const remaining=chunks.slice(idx-1).join(' ');
+          speakWSA(remaining,onEnd);
+        }else if(!brianAborted){
+          playNext();
+        }
       }
       audio.onended=done;
       audio.onerror=fail;
-      timer=setTimeout(fail,5000);
-      audio.play().catch(err=>{
-        // User gesture expired → fall back entirely to Web Speech API
+      timer=setTimeout(fail,6000);
+      audio.play().catch(function(){
         if(timer){clearTimeout(timer);}
         settled=true;
         speakWSA(chunks.slice(idx-1).join(' '),onEnd);
       });
     }
+
     playNext();
   }
 
-  function speak(text, btn, bar) {
-    if (!text) return;
+  /* ══════════════════════════════════════════════════════
+     MAIN speak() — Brian primary, WSA fallback
+  ══════════════════════════════════════════════════════ */
+  function speak(text,btn,bar){
+    if(!text)return;
 
     // Same button + paused → RESUME
-    if (activePlayBtn === btn && isPaused) {
-      if (currentBrianAudio) {
+    if(activePlayBtn===btn&&isPaused){
+      if(currentBrianAudio){
         currentBrianAudio.play().catch(function(){});
-      } else if (window.speechSynthesis && speechSynthesis.paused) {
+      }else if(window.speechSynthesis&&speechSynthesis.paused){
         speechSynthesis.resume();
       }
-      isPaused = false;
-      if (btn) {
-        if (btn.classList.contains('ab-play-btn')) btn.innerHTML='▶ Reading…';
-        else { btn.textContent='🔊'; btn.classList.add('playing'); }
+      isPaused=false;
+      if(btn){
+        // Show PAUSE icon — playback is now running
+        if(btn.classList.contains('ab-play-btn'))btn.innerHTML='⏸ Pause';
+        else{btn.textContent='⏸';btn.classList.add('playing');}
       }
-      if (activeBar) {
-        const w=activeBar.querySelector('.ab-waves');
-        if(w) w.classList.add('ab-vis');
-      }
+      if(activeBar){const w=activeBar.querySelector('.ab-waves');if(w)w.classList.add('ab-vis');}
       return;
     }
 
     // Same button + playing → PAUSE
-    if (activePlayBtn === btn && !isPaused) {
-      if (currentBrianAudio) {
-        currentBrianAudio.pause();
-      } else if (window.speechSynthesis) {
-        speechSynthesis.pause();
+    if(activePlayBtn===btn&&!isPaused){
+      if(currentBrianAudio){currentBrianAudio.pause();}
+      else if(window.speechSynthesis){speechSynthesis.pause();}
+      isPaused=true;
+      if(btn){
+        // Show RESUME icon — playback is now paused
+        if(btn.classList.contains('ab-play-btn'))btn.innerHTML='▶ Resume';
+        else btn.textContent='▶';
       }
-      isPaused = true;
-      if (btn) {
-        if (btn.classList.contains('ab-play-btn')) btn.innerHTML='⏸ Paused';
-        else { btn.textContent='⏸'; }
-      }
-      if (activeBar) {
-        const w=activeBar.querySelector('.ab-waves');
-        if(w) w.classList.remove('ab-vis');
-      }
+      if(activeBar){const w=activeBar.querySelector('.ab-waves');if(w)w.classList.remove('ab-vis');}
       return;
     }
 
-    // Different button → stop previous and start new
-    startUI(btn, bar);
-    isPaused = false;
-    currentBrianAudio = null;
-    const onEnd = () => { isPaused = false; currentBrianAudio = null; stopUI(); };
-
-    // Try StreamElements Brian first; fall back to Web Speech API
-    try {
-      speakBrian(text, onEnd);
-    } catch(e) {
-      speakWSA(text, onEnd);
-    }
+    // New button → stop previous, start new
+    startUI(btn,bar);
+    isPaused=false;
+    const onEnd=()=>{isPaused=false;currentBrianAudio=null;currentBrianQueue=[];stopUI();};
+    try{speakBrian(text,onEnd);}catch(e){speakWSA(text,onEnd);}
   }
 
-  /* ── Factory functions ── */
-  function makeBar(el, lbl, top) {
+  /* ══════════════════════════════════════════════════════
+     BUTTON FACTORIES
+  ══════════════════════════════════════════════════════ */
+  function makeBar(el,lbl,top){
     const bar=document.createElement('div');
     bar.className='audio-bar'+(top?' ab-top':'');
     bar.innerHTML=
       '<button class="ab-play-btn">▶ Read</button>'+
       '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<div class="ab-lbl">'+(lbl||'').replace(/</g,'&lt;').slice(0,48)+'</div>'+
+      '<div class="ab-lbl">'+(lbl||'').replace(/</g,'&lt;').slice(0,52)+'</div>'+
       '<button class="ab-stop-btn" title="Stop">■</button>';
     const pb=bar.querySelector('.ab-play-btn');
     const sb=bar.querySelector('.ab-stop-btn');
     let cache=null;
-    pb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();if(!cache)cache=getTextOf(el);speak(cache,pb,bar);});
+    pb.addEventListener('click',function(e){
+      e.stopPropagation();e.preventDefault();
+      if(!cache)cache=getTextOf(el);
+      speak(cache,pb,bar);
+    });
     sb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();stopAll();});
     return bar;
   }
 
-  function makeMini(textOrFn) {
+  function makeMini(textOrFn){
     const btn=document.createElement('button');
-    btn.className='ab-mini'; btn.textContent='🔈'; btn.title='Read aloud';
+    btn.className='ab-mini';btn.textContent='🔈';btn.title='Read aloud';
     btn.addEventListener('click',e=>{
       e.stopPropagation();
       const text=typeof textOrFn==='function'?textOrFn():textOrFn;
@@ -13032,100 +13180,95 @@ window.TTS = (function() {
     return btn;
   }
 
-  function makeHam(text) {
+  function makeHam(text){
     const btn=document.createElement('button');
-    btn.className='ab-ham'; btn.textContent='🔈'; btn.title='Read';
+    btn.className='ab-ham';btn.textContent='🔈';btn.title='Read';
     btn.addEventListener('click',e=>{e.stopPropagation();speak(text,btn,null);});
     return btn;
   }
 
-  /* ── Play-All bar: reads all subsections of a container in sequence ── */
-  function makeGroupBar(container, label) {
+  function makeGroupBar(container,label){
     const bar=document.createElement('div');
     bar.className='audio-bar ab-top';
     bar.style.cssText='border-radius:6px 6px 0 0;margin:0;';
     bar.innerHTML=
       '<button class="ab-play-btn" style="font-weight:600">▶ Play All</button>'+
       '<div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<div class="ab-lbl">'+(label||'').replace(/</g,'&lt;').slice(0,52)+'</div>'+
+      '<div class="ab-lbl">'+(label||'').replace(/</g,'&lt;').slice(0,56)+'</div>'+
       '<button class="ab-stop-btn" title="Stop">■</button>';
     const pb=bar.querySelector('.ab-play-btn');
     const sb=bar.querySelector('.ab-stop-btn');
     let cache=null;
-    pb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();if(!cache)cache=getTextOf(container);speak(cache,pb,bar);});
+    pb.addEventListener('click',function(e){
+      e.stopPropagation();e.preventDefault();
+      if(!cache)cache=getTextOf(container);
+      speak(cache,pb,bar);
+    });
     sb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();stopAll();});
     return bar;
   }
 
-  /* ── Core injection — can be called on any container ── */
-  function injectEl(root) {
-    const SKIP = el => el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,#tts-btn,#tts-tooltip');
+  /* ══════════════════════════════════════════════════════
+     INJECTION — attaches audio buttons to every element type
+  ══════════════════════════════════════════════════════ */
+  function SKIP(el){
+    return el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,#tts-btn,#tts-tooltip');
+  }
 
-    // ── ctx-card: "Play All" at top of body + mini-speaker on header ──
+  function injectEl(root){
+
+    /* ── 1. ctx-card: mini speaker on header + Play All on body ── */
     root.querySelectorAll('.ctx-card').forEach(card=>{
       if(card.dataset.ab)return;
       card.dataset.ab='1';
       const header=card.querySelector('.ctx-card-header');
       const chevron=card.querySelector('.ctx-chevron');
       const body=card.querySelector('.ctx-body');
-      // Mini speaker on header (reads whole card)
-      if(header && !header.querySelector('.ab-mini')){
+      if(header&&!header.querySelector('.ab-mini')){
         const mini=makeMini(()=>getTextOf(card));
-        mini.title='Read entire section';
+        mini.title='Read entire card';
         mini.style.cssText='font-size:14px;opacity:.45;margin-left:auto;margin-right:8px;flex-shrink:0';
-        if(chevron) header.insertBefore(mini,chevron);
+        if(chevron)header.insertBefore(mini,chevron);
         else header.appendChild(mini);
       }
-      // Play All bar at top of body
-      if(body && !body.querySelector('.audio-bar')){
+      if(body&&!body.querySelector(':scope > .audio-bar')){
         const h4=card.querySelector('h4');
-        const lbl=h4?(h4.innerText||'').trim():'';
-        const groupBar=makeGroupBar(body, lbl || 'Read all subsections');
-        body.insertBefore(groupBar,body.firstChild);
+        const lbl=h4?(h4.innerText||'').trim():'Read all subsections';
+        body.insertBefore(makeGroupBar(body,lbl),body.firstChild);
       }
     });
 
-    // ── ctx-section (Overview, How Determined, Detailed Explanation, etc.) ──
+    /* ── 2. ctx-section ── */
     root.querySelectorAll('.ctx-section').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('.ctx-section-label')||{}).innerText||'';
+      const lbl=(el.querySelector('.ctx-section-label,.ctx-section-title')||{}).innerText||'';
       el.appendChild(makeBar(el,lbl));
     });
 
-    // ── card-sm (Modern Application / Modern Example — inside ctx-body/ctx-grid) ──
+    /* ── 3. card-sm ── */
     root.querySelectorAll('.card-sm').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('.ctx-section-label')||{}).innerText||'';
+      const lbl=(el.querySelector('.ctx-section-label,.ctx-section-title')||{}).innerText||'';
       el.appendChild(makeBar(el,lbl));
     });
 
-    // ── Inline highlighted boxes inside ctx-body (Key Scholarly Statement, etc.) ──
-    root.querySelectorAll('.ctx-body > div[style]').forEach(el=>{
+    /* ── 4. Styled inline boxes inside ctx-body (vb blocks, highlight blocks, case-study boxes) ── */
+    root.querySelectorAll('.ctx-body > div[style], .ctx-section > div[style]').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
-      if(el.classList.contains('ctx-section')||el.classList.contains('ctx-grid')) return;
-      if(el.querySelector('.ctx-card,.audio-bar')) return;
+      if(el.classList.contains('ctx-section')||el.classList.contains('ctx-grid'))return;
+      if(el.querySelector('.ctx-card,.audio-bar'))return;
       const s=el.getAttribute('style')||'';
-      if(!s.includes('border')&&!s.includes('background')) return;
-      if((el.innerText||'').trim().length<20) return;
+      if(!s.includes('border')&&!s.includes('background'))return;
+      if((el.innerText||'').trim().length<20)return;
       el.dataset.ab='1';
-      const lbl=(el.querySelector('[style*="uppercase"],[style*="text-transform"]')||{}).innerText||'';
-      el.appendChild(makeBar(el,lbl.slice(0,48)||'Highlighted block'));
+      const lbl=(el.querySelector('[style*="uppercase"],[style*="text-transform"]')||{}).innerText||
+                (el.querySelector('[style*="font-weight:700"],[style*="font-weight:600"]')||{}).innerText||'';
+      el.appendChild(makeBar(el,(lbl||'Block').slice(0,52)));
     });
 
-    // ── Individual case-study / quote boxes inside ctx-sections ──
-    root.querySelectorAll('.ctx-section > div[style], .ctx-body > .ctx-section > div[style]').forEach(el=>{
-      if(el.dataset.ab||SKIP(el))return;
-      if((el.innerText||'').trim().length<20) return;
-      el.dataset.ab='1';
-      // Get label from first small-caps child
-      const lbl=(el.querySelector('[style*="uppercase"]')||{}).innerText||
-                (el.querySelector('[style*="font-weight:600"],[style*="font-weight: 600"]')||{}).innerText||'';
-      el.appendChild(makeBar(el,('Case Study: '+lbl).slice(0,52)));
-    });
-
-    // ── example-box and misapp-box ──
+    /* ── 5. example-box / misapp-box ── */
     root.querySelectorAll('.example-box,.misapp-box').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
@@ -13133,60 +13276,59 @@ window.TTS = (function() {
       el.appendChild(makeBar(el,lbl));
     });
 
-    // ── scholar-cite blocks ──
+    /* ── 6. scholar-cite ── */
     root.querySelectorAll('.scholar-cite').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
       el.appendChild(makeBar(el,'Scholar'));
     });
 
-    // ── omit-row (omitted verses) ──
+    /* ── 7. omit-row ── */
     root.querySelectorAll('.omit-row').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
       el.appendChild(makeBar(el,''));
     });
 
-    // ── All card types NOT inside ctx-body ──
-    const CARD_SEL='.card,.lexicon-card,.scholar-card,.home-card,.lex-card,.glos-card,'+
-                   '.principle-card,.error-card,.argument-card,.stat-box,.verdict-box,'+
-                   '.scripture-block,.quote-block,.cat-header-block,[class$="-card"]';
+    /* ── 8. All named card classes not inside ctx-body ── */
+    const CARD_SEL=[
+      '.card','.lexicon-card','.scholar-card','.home-card','.lex-card','.glos-card',
+      '.principle-card','.error-card','.argument-card','.stat-box','.verdict-box',
+      '.scripture-block','.quote-block','.cat-header-block','[class$="-card"]'
+    ].join(',');
     root.querySelectorAll(CARD_SEL).forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
-      // skip if it's already inside a ctx-body-level injection (card-sm handled above)
-      if(el.classList.contains('card-sm')) return;
-      if(el.closest('.ctx-body')) {
-        // Still inject if it's a quote-block or scripture-block inside argument-card
-        if(!el.matches('.quote-block,.scripture-block')) return;
-      }
+      if(el.classList.contains('card-sm'))return;
+      if(el.closest('.ctx-body')&&!el.matches('.quote-block,.scripture-block,.argument-card'))return;
       el.dataset.ab='1';
       const h=el.querySelector('h2,h3,h4,h5,strong,.card-title');
-      const lbl=h?(h.innerText||'').slice(0,48):'';
-      el.appendChild(makeBar(el,lbl));
+      el.appendChild(makeBar(el,h?(h.innerText||'').slice(0,52):''));
     });
 
-    // ── bib-entry ──
+    /* ── 9. bib-entry ── */
     root.querySelectorAll('.bib-entry').forEach(el=>{
       if(el.dataset.ab||SKIP(el))return;
       el.dataset.ab='1';
       el.appendChild(makeBar(el,''));
     });
 
-    // ── KJV panels — group Play All bar at top ──
+    /* ── 10. KJV panels — Play All at top ── */
     root.querySelectorAll('.kjv-panel').forEach(panel=>{
       if(panel.dataset.ab)return;
       panel.dataset.ab='1';
       panel.insertBefore(makeGroupBar(panel,'Read entire section'),panel.firstChild);
     });
 
-    // ── cat-panel, sub-panel, content-panel — group Play All bar at top ──
-    root.querySelectorAll('.cat-panel,.sub-panel,.content-panel').forEach(panel=>{
+    /* ── 11. sub-panel, cat-panel, content-panel — Play All at top ── */
+    root.querySelectorAll('.sub-panel,.cat-panel,.content-panel').forEach(panel=>{
       if(panel.dataset.ab)return;
       panel.dataset.ab='1';
-      panel.insertBefore(makeGroupBar(panel,'Read entire section'),panel.firstChild);
+      const h=panel.querySelector('h2,h3,h4,h5,.section-label');
+      const lbl=h?(h.innerText||'').slice(0,56):'Read entire section';
+      panel.insertBefore(makeGroupBar(panel,lbl),panel.firstChild);
     });
 
-    // ── Headings h2/h3/h4 not inside card headers or tab-bars — inline mini ──
+    /* ── 12. h2/h3/h4 not in card headers — inline mini speaker ── */
     root.querySelectorAll('h2,h3,h4').forEach(h=>{
       if(h.dataset.ab||SKIP(h))return;
       if(h.closest('.ctx-card-header,.sub-tab-row,.kjv-subtab-bar,.tab-row,.cat-tabs,.audio-bar'))return;
@@ -13194,7 +13336,7 @@ window.TTS = (function() {
       h.appendChild(makeMini(()=>getHeadingBlock(h)));
     });
 
-    // ── h5 inline mini ──
+    /* ── 13. h5 inline mini ── */
     root.querySelectorAll('h5').forEach(h=>{
       if(h.dataset.ab||SKIP(h))return;
       if(h.closest('.audio-bar,.cat-tabs'))return;
@@ -13202,58 +13344,58 @@ window.TTS = (function() {
       h.appendChild(makeMini(()=>getHeadingBlock(h)));
     });
 
-    // ── Bordered/shaded top-level divs (inline-styled blocks at page level) ──
-    root.querySelectorAll('.page > .container > div, .page > .container > section,'+
-                          '.kjv-panel > div[style], .cat-panel > div[style]').forEach(div=>{
+    /* ── 14. Top-level styled divs on .page ── */
+    root.querySelectorAll('.page > .container > div,.page > .container > section,'+
+                          '.kjv-panel > div[style],.cat-panel > div[style]').forEach(div=>{
       if(div.dataset.ab||SKIP(div))return;
       if(div.matches(CARD_SEL)||div.classList.contains('cat-panel')||
-         div.classList.contains('kjv-panel')||div.classList.contains('audio-bar')) return;
-      if(div.querySelector('.ctx-card,.card,.lexicon-card,.audio-bar')) return;
+         div.classList.contains('kjv-panel')||div.classList.contains('audio-bar'))return;
+      if(div.querySelector('.ctx-card,.card,.lexicon-card,.audio-bar'))return;
       const s=div.getAttribute('style')||'';
-      if(!s.includes('border')&&!s.includes('background')) return;
-      if((div.innerText||'').trim().length<25) return;
+      if(!s.includes('border')&&!s.includes('background'))return;
+      if((div.innerText||'').trim().length<25)return;
       div.dataset.ab='1';
       const h=div.querySelector('h2,h3,h4,h5,strong');
-      div.appendChild(makeBar(div,h?(h.innerText||'').slice(0,48):''));
+      div.appendChild(makeBar(div,h?(h.innerText||'').slice(0,52):''));
     });
 
-    // ── Hamburger menu items ──
+    /* ── 15. Hamburger menu items ── */
     root.querySelectorAll('.ham-item').forEach(item=>{
       if(item.dataset.ab)return;
       item.dataset.ab='1';
       const text=(item.innerText||'').trim();
       if(!text)return;
-      item.style.display='flex'; item.style.alignItems='center';
-      item.style.justifyContent='space-between';
+      item.style.display='flex';item.style.alignItems='center';item.style.justifyContent='space-between';
       item.appendChild(makeHam(text));
     });
 
-    // ── Dropdown items ──
+    /* ── 16. Dropdown items ── */
     root.querySelectorAll('.dropdown-item').forEach(item=>{
       if(item.dataset.ab)return;
       item.dataset.ab='1';
       const text=(item.innerText||'').trim();
       if(!text)return;
-      item.style.display='flex'; item.style.alignItems='center';
-      item.style.justifyContent='space-between';
+      item.style.display='flex';item.style.alignItems='center';item.style.justifyContent='space-between';
       item.appendChild(makeHam(text));
     });
   }
 
-  /* ── Full-site injection — runs on entire document ── */
-  function inject() {
-    // Clear ALL previous injections
+  /* ══════════════════════════════════════════════════════
+     FULL-SITE INJECTION  (runs at page load + on nav)
+  ══════════════════════════════════════════════════════ */
+  function inject(){
     document.querySelectorAll('.audio-bar:not([data-static]),.ab-mini,.ab-ham').forEach(el=>el.remove());
-    document.querySelectorAll('[data-ab]').forEach(el=>{ delete el.dataset.ab; });
-    // Inject on entire document (all pages, including hidden ones)
+    document.querySelectorAll('[data-ab]').forEach(el=>{delete el.dataset.ab;});
     injectEl(document);
   }
 
-  /* ── Global floating button (read whole page) ── */
-  function initGlobalBtn() {
+  /* ══════════════════════════════════════════════════════
+     GLOBAL FLOATING BUTTON (read current page)
+  ══════════════════════════════════════════════════════ */
+  function initGlobalBtn(){
     const btn=document.getElementById('tts-btn');
     if(!btn||btn.dataset.ab)return;
-    btn.dataset.ab='1'; btn.textContent='🔈';
+    btn.dataset.ab='1';btn.textContent='🔈';
     let dragging=false,moved=false,sx,sy,sl,st;
     function sd(cx,cy){const r=btn.getBoundingClientRect();sx=cx;sy=cy;sl=r.left;st=r.top;btn.style.right='auto';btn.style.bottom='auto';btn.style.left=sl+'px';btn.style.top=st+'px';dragging=true;moved=false;}
     function dd(cx,cy){if(!dragging)return;const dx=cx-sx,dy=cy-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;btn.style.left=Math.max(8,Math.min(innerWidth-btn.offsetWidth-8,sl+dx))+'px';btn.style.top=Math.max(68,Math.min(innerHeight-btn.offsetHeight-8,st+dy))+'px';}
