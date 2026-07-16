@@ -13729,7 +13729,7 @@ document.addEventListener('keydown', function(e) {
 
 // ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════
-// AUDIO ENGINE v4 — generation-safe, isolated, full hierarchy
+// AUDIO ENGINE v5 — sequential chunks, done-guard, no double-fallback
 // ═══════════════════════════════════════════════════════
 window.TTS = (function() {
   'use strict';
@@ -13955,36 +13955,41 @@ window.TTS = (function() {
     return chunks;
   }
 
-  function makeBrianAudio(chunk){
-    const a=new Audio(BRIAN_BASE+encodeURIComponent(chunk));
-    a.preload='auto';
-    return a;
-  }
-
   function speakBrian(text,myGen,onEnd){
     if(ttsGen!==myGen)return;
     const chunks=chunkText(text,BRIAN_MAX);
     if(!chunks.length){if(ttsGen===myGen)onEnd();return;}
-    // Preload ALL chunks immediately for near-gapless playback
-    currentBrianQueue=chunks.map(makeBrianAudio);
+    // Sequential: one chunk at a time — avoids N×2 onerror+catch pile-up
     let idx=0;
-    function playNext(){
-      if(ttsGen!==myGen)return; // generation guard — abort immediately
+    function playOne(){
+      if(ttsGen!==myGen)return;
       if(idx>=chunks.length){onEnd();return;}
-      const audio=currentBrianQueue[idx];
+      const chunk=chunks[idx++];
+      const audio=new Audio(BRIAN_BASE+encodeURIComponent(chunk));
+      audio.preload='auto';
       currentBrianAudio=audio;
-      idx++;
-      audio.onended=function(){if(ttsGen===myGen)playNext();};
-      audio.onerror=function(){
+      currentBrianQueue=[audio];
+      // done flag: only ONE of (onended / onerror / play().catch) runs — never both
+      let done=false;
+      function next(){
+        if(done)return; done=true;
         if(ttsGen!==myGen)return;
-        speakWSA(chunks.slice(idx-1).join(' '),myGen,onEnd);
-      };
-      audio.play().catch(function(){
+        currentBrianAudio=null; currentBrianQueue=[];
+        playOne();
+      }
+      function fail(){
+        if(done)return; done=true;
         if(ttsGen!==myGen)return;
+        currentBrianAudio=null; currentBrianQueue=[];
+        // Fall back to Web Speech API for this chunk and all remaining
         speakWSA(chunks.slice(idx-1).join(' '),myGen,onEnd);
-      });
+      }
+      audio.onended=next;
+      audio.onerror=fail;
+      const p=audio.play();
+      if(p&&p.catch)p.catch(fail);
     }
-    playNext();
+    playOne();
   }
 
   /* ══════════════════════════════════════════════════════
