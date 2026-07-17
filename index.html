@@ -14597,7 +14597,7 @@ document.addEventListener('keydown', function(e) {
 window.TTS = (function(){
   'use strict';
   var activeBtn=null, activeBar=null, isPaused=false, ttsGen=0;
-  var queue=[], qIdx=0, mode=null, brianAudio=null;
+  var queue=[], qIdx=0, mode=null, brianAudio=null, brianDead=false;
 
   /* ---------- text normaliser ---------- */
   function cleanText(raw){
@@ -14724,6 +14724,7 @@ window.TTS = (function(){
       };
       var fail=function(){
         if(done)return;done=true;
+        brianDead=true;
         if(ttsGen!==myGen)return;
         brianAudio=null;mode='wsa';
         ensureVoices(function(){playChunk(myGen);});
@@ -14824,7 +14825,7 @@ window.TTS = (function(){
     activeBtn=btn;activeBar=bar;
     setBtnPlaying(btn);barWaves(bar,true);
     queue=chunkText(text);qIdx=0;
-    mode=(typeof Audio!=='undefined')?'brian':'wsa';
+    mode=(!brianDead&&typeof Audio!=='undefined')?'brian':'wsa';
     var gen=ttsGen;
     if(mode==='brian')playChunk(gen);
     else ensureVoices(function(){playChunk(gen);});
