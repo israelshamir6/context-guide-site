@@ -15287,13 +15287,13 @@ window.SearchUI = (function(){
         showPage(n.id,fakBtn);
       }
       if(n.classList.contains('cat-panel')&&!n.classList.contains('active')&&typeof switchCat==='function'){
-        switchCat(n.id);
+        switchCat(n.id.replace(/^cat-panel-/,''));
       }
       if(n.classList.contains('sub-panel')&&!n.classList.contains('active')&&typeof switchSub==='function'){
         switchSub(n.id.replace(/^sub-/,''));
       }
-      if(n.classList.contains('kjv-panel')&&!n.classList.contains('active')&&typeof switchKJV==='function'){
-        switchKJV(n.id);
+      if(n.classList.contains('kjv-panel')&&typeof switchKJV==='function'){
+        if(getComputedStyle(n).display==='none')switchKJV(n.id);
       }
       if(n.classList.contains('ctx-body')&&!n.classList.contains('open')){
         n.classList.add('open');
