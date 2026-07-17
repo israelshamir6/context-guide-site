@@ -14470,7 +14470,7 @@ window.SearchUI = (function(){
     return snip;
   }
 
-  function escRe(s){ return s.replace(/[.*+?^\${}()|[\]\]/g,'\$&'); }
+  function escRe(s){ return s.replace(/[.*+?^\${}()|[\]\\]/g,'\$&'); }
 
   /* ── Search ── */
   function search(query){
@@ -16180,7 +16180,7 @@ window.SearchUI = (function(){
     return snip;
   }
 
-  function escRe(s){return s.replace(/[.*+?^${}()|[\]\]/g,'\$&');}
+  function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\$&');}
   function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
   function search(query){
