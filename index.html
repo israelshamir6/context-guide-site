@@ -15270,30 +15270,75 @@ window.SearchUI = (function(){
     return scored.slice(0,80);
   }
 
-  function navigateTo(entry){
+  function ensureVisible(el){
+    /* Walk from the exact element up to <body>, activating every container
+       that hides it: page tabs, category panels, sub-panels, KJV panels,
+       and collapsed accordions. Guarantees the landing spot is the exact
+       indexed element, never the page in general. */
     const fakBtn={classList:{add:function(){},remove:function(){}}};
-    if(typeof showPage==='function')showPage(entry.pageId,fakBtn);
-    if(entry.catId&&typeof switchCat==='function')setTimeout(()=>switchCat(entry.catId),60);
-    if(entry.subId&&typeof switchSub==='function')setTimeout(()=>switchSub(entry.subId),60);
-    if(entry.kjvId&&typeof switchKJV==='function')setTimeout(()=>switchKJV(entry.kjvId),60);
-    if(entry.ctxId){
-      setTimeout(()=>{
-        const body=document.getElementById('body-'+entry.ctxId);
-        const chev=document.getElementById('chev-'+entry.ctxId);
-        if(body&&!body.classList.contains('open')){
-          body.classList.add('open');
-          if(chev)chev.classList.add('open');
-          const hdr=body.previousElementSibling;
-          if(hdr)hdr.classList.add('open');
+    const chain=[];
+    let node=el;
+    while(node&&node!==document.body){chain.push(node);node=node.parentElement;}
+    /* activate outermost first (page), then inward */
+    for(let i=chain.length-1;i>=0;i--){
+      const n=chain[i];
+      if(!n.classList)continue;
+      if(n.classList.contains('page')&&!n.classList.contains('active')&&typeof showPage==='function'){
+        showPage(n.id,fakBtn);
+      }
+      if(n.classList.contains('cat-panel')&&!n.classList.contains('active')&&typeof switchCat==='function'){
+        switchCat(n.id);
+      }
+      if(n.classList.contains('sub-panel')&&!n.classList.contains('active')&&typeof switchSub==='function'){
+        switchSub(n.id.replace(/^sub-/,''));
+      }
+      if(n.classList.contains('kjv-panel')&&!n.classList.contains('active')&&typeof switchKJV==='function'){
+        switchKJV(n.id);
+      }
+      if(n.classList.contains('ctx-body')&&!n.classList.contains('open')){
+        n.classList.add('open');
+        const hdr=n.previousElementSibling;
+        if(hdr){
+          hdr.classList.add('open');
+          const ch=hdr.querySelector('.ctx-chevron');
+          if(ch)ch.classList.add('open');
         }
-      },100);
+        const bid=(n.id||'').replace(/^body-/,'');
+        if(bid){const chev=document.getElementById('chev-'+bid);if(chev)chev.classList.add('open');}
+      }
     }
-    setTimeout(()=>{
-      const el=entry.el;if(!el)return;
-      el.scrollIntoView({behavior:'smooth',block:'center'});
-      el.classList.add('search-found-flash');
-      setTimeout(()=>el.classList.remove('search-found-flash'),2000);
-    },220);
+  }
+
+  function navigateTo(entry){
+    const el=entry.el;
+    if(!el||!document.body.contains(el)){
+      /* stale element: fall back to page-level navigation */
+      const fakBtn={classList:{add:function(){},remove:function(){}}};
+      if(typeof showPage==='function')showPage(entry.pageId,fakBtn);
+      if(entry.catId&&typeof switchCat==='function')setTimeout(()=>switchCat(entry.catId),60);
+      if(entry.subId&&typeof switchSub==='function')setTimeout(()=>switchSub(entry.subId),60);
+      if(entry.kjvId&&typeof switchKJV==='function')setTimeout(()=>switchKJV(entry.kjvId),60);
+      return;
+    }
+    ensureVisible(el);
+    /* Poll until the element is actually laid out, then scroll precisely to it. */
+    let tries=0;
+    (function attempt(){
+      tries++;
+      const visible=el.offsetParent!==null||el.getClientRects().length>0;
+      if(visible){
+        el.scrollIntoView({behavior:'smooth',block:'center'});
+        el.classList.add('search-found-flash');
+        setTimeout(function(){el.classList.remove('search-found-flash');},2200);
+        /* corrective re-scroll after smooth animation & late layout settle */
+        setTimeout(function(){
+          if(document.body.contains(el))el.scrollIntoView({block:'center'});
+        },700);
+      }else if(tries<15){
+        ensureVisible(el);
+        setTimeout(attempt,120);
+      }
+    })();
   }
 
   function render(results,query){
