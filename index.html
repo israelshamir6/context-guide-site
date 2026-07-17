@@ -327,6 +327,65 @@ hr{border:none;border-top:1px solid var(--border);margin:24px 0}
 .dl-progress{display:none;margin-top:12px;font-size:13px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px}
 .dl-progress.show{display:block}
 
+
+/* ═══════════════ SITE SEARCH ═══════════════ */
+.nav-search-wrap{display:flex;align-items:center;margin-right:6px}
+#search-open-btn{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:5px 12px 5px 10px;font-size:13px;cursor:pointer;transition:border-color .2s,color .2s}
+#search-open-btn:hover{border-color:var(--accent);color:var(--text)}
+#search-open-btn span{display:none}
+@media(min-width:540px){#search-open-btn span{display:inline}}
+#search-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;padding-top:60px}
+#search-modal.open{display:flex}
+#search-panel{background:var(--bg);border:1px solid var(--border);border-radius:14px;width:min(720px,94vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.55);overflow:hidden}
+#search-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
+#search-header svg{flex-shrink:0;color:var(--text2)}
+#search-input{flex:1;background:transparent;border:none;outline:none;font-size:17px;color:var(--text);caret-color:var(--accent)}
+#search-input::placeholder{color:var(--text2);opacity:.6}
+#search-close-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;border-radius:4px;transition:color .15s}
+#search-close-btn:hover{color:var(--text)}
+#search-stats{font-size:12px;color:var(--text2);padding:6px 18px;border-bottom:1px solid var(--border);background:var(--bg2);min-height:28px}
+#search-results{overflow-y:auto;flex:1;padding:6px 0;scrollbar-width:thin}
+.sr-item{padding:11px 18px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover,.sr-item.focused{background:var(--bg2)}
+.sr-path{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:3px}
+.sr-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-snippet{font-size:13px;color:var(--text2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sr-snippet mark{background:rgba(63,185,80,.28);color:var(--text);border-radius:2px;padding:0 1px;font-weight:600}
+#search-no-results{text-align:center;padding:40px 20px;color:var(--text2);display:none}
+#search-no-results .sr-icon{font-size:32px;margin-bottom:10px}
+@keyframes searchFlash{0%{background:rgba(63,185,80,.35)}60%{background:rgba(63,185,80,.18)}100%{background:transparent}}
+.search-found-flash{animation:searchFlash 1.8s ease forwards !important}
+/* ═══════════════ TTS / AUDIO BARS ═══════════════ */
+#tts-btn{position:fixed;bottom:28px;right:24px;z-index:9999;width:52px;height:52px;border-radius:50%;background:var(--bg2);border:2px solid rgba(255,255,255,.2);color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.5);touch-action:none;user-select:none;transition:background .2s,border-color .2s}
+#tts-btn:hover{background:var(--bg3,#21262d);border-color:var(--accent)}
+#tts-btn.playing{background:rgba(255,215,0,.12);border-color:var(--accent);animation:tts-pulse 1.8s ease-in-out infinite}
+@keyframes tts-pulse{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,.4)}50%{box-shadow:0 0 0 10px rgba(63,185,80,0)}}
+#tts-tooltip{position:fixed;bottom:88px;right:24px;z-index:10000;background:var(--bg2);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
+#tts-btn:hover + #tts-tooltip{opacity:1}
+.audio-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;margin:6px 0;background:var(--bg2);border:1px solid var(--border);border-radius:6px;font-size:12px}
+.ab-play-btn,.ab-page-btn{background:rgba(63,185,80,.15);border:1px solid rgba(63,185,80,.35);color:var(--text);border-radius:5px;padding:3px 11px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.ab-play-btn:hover,.ab-page-btn:hover{background:rgba(63,185,80,.28)}
+.ab-play-btn.ab-active,.ab-page-btn.ab-active{background:rgba(63,185,80,.3);border-color:rgba(63,185,80,.6)}
+.ab-stop-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;opacity:0;transition:opacity .15s,color .15s;flex-shrink:0}
+.ab-stop-btn.ab-vis{opacity:1}
+.ab-stop-btn:hover{color:var(--text)}
+.ab-waves{display:flex;align-items:flex-end;gap:2px;height:16px;opacity:0;transition:opacity .2s;flex-shrink:0}
+.ab-waves.ab-vis{opacity:1}
+.ab-waves span{display:block;width:3px;background:var(--accent);border-radius:2px;animation:ab-wave 1.1s ease-in-out infinite}
+.ab-waves span:nth-child(1){height:4px;animation-delay:0s}
+.ab-waves span:nth-child(2){height:10px;animation-delay:.15s}
+.ab-waves span:nth-child(3){height:14px;animation-delay:.3s}
+.ab-waves span:nth-child(4){height:10px;animation-delay:.45s}
+.ab-waves span:nth-child(5){height:4px;animation-delay:.6s}
+@keyframes ab-wave{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+.ab-lbl{flex:1;color:var(--text2);font-size:11px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;opacity:.7}
+.ab-mini{background:none;border:none;cursor:pointer;font-size:13px;opacity:.4;padding:0 3px;line-height:1;transition:opacity .15s;vertical-align:middle;flex-shrink:0}
+.ab-mini:hover{opacity:.85}
+.ab-ham{background:none;border:none;cursor:pointer;font-size:13px;padding:0 3px;opacity:.5;transition:opacity .15s;float:right}
+.ab-ham:hover{opacity:.9}
+.ab-top{border-radius:6px 6px 0 0;margin:0}
+.ab-page-bar{background:linear-gradient(135deg,rgba(90,60,160,.15),rgba(60,120,200,.10));border:1px solid rgba(140,100,255,.30);border-radius:8px;margin:0 0 16px;padding:7px 12px;display:flex;align-items:center;gap:10px}
 </style>
 <script>
 // Load ResponsiveVoice with fallback
@@ -1321,6 +1380,27 @@ community creates a different semantic field entirely.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">2 (Literary Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">4 (Intertextual Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">13 (Authorial Intent)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">24 (Source/Tradition Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Exodus 12:43&#8211;49; Leviticus 25:39&#8211;46 &#8212; Four Hebrew Terms, One English Word: The Linguistic Collapse That Creates False Universalism</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Exodus 12:43, 45, 48; Leviticus 25:39&#8211;46; Deuteronomy 23:20; 2 Chronicles 15:9; Nehemiah 13:1&#8211;3 (KJV); Hebrew: ger, nokri, toshav, sakhir, eved, sakhir</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The KJV renders four distinct Hebrew legal terms as &#8220;stranger&#8221; and two as &#8220;servant,&#8221; collapsing a precise taxonomy into a single ambiguous English word. The linguistic flattening produces the false inference that every use of &#8220;stranger&#8221; refers to an ethnic non-Israelite. Co-text analysis of Exodus 12 and its companion passages restores the legal architecture the original audience understood.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">The Six Hebrew Terms and Their Legal Range:</strong><br><br>
+&#8226; <strong><em>ger</em> (&#x05D2;&#x05B5;&#x05BC;&#x05E8;) &#8212; covenant sojourner:</strong> A displaced person within or adjacent to the covenant community. In Exodus 12:48 this is the Israelite living outside his tribal territory (diaspora) who may keep passover after circumcision. W. Gunther Plaut (<em>The Torah: A Modern Commentary</em>, UAHC, 1981, p.&#160;427): &#8220;The <em>ger</em> is not an ethnic outsider but a resident who lacks the protections of his own clan &#8212; the paradigmatic case being the Israelite displaced from his tribal land.&#8221;<br><br>
+&#8226; <strong><em>nokri</em> (&#x05E0&#x05B8;&#x05DB&#x05B0;&#x05E8&#x05B4;&#x05D9;) &#8212; ethnic foreigner:</strong> The genuinely other-nation person; permanently outside the covenant. Excluded from passover (v.&#160;43), forbidden from lending at interest exemption that Israelites receive (Deut 23:20). Francis Brown, S.R. Driver &amp; C.A. Briggs (<em>A Hebrew and English Lexicon of the Old Testament</em>, Clarendon Press, 1907, p.&#160;648): &#8220;<em>Nokri</em> denotes the alien by nationality, the ethnic outsider &#8212; distinct from the <em>ger</em> who, whatever his origin, is incorporated into the community structure.&#8221;<br><br>
+&#8226; <strong><em>toshav</em> (&#x05EA&#x05BC;&#x05D5&#x05B9;&#x05E9&#x05B8;&#x05D1;) &#8212; temporary resident:</strong> A short-term sojourner without covenant membership or permanent dwelling rights. Excluded from passover (v.&#160;45). BDB (p.&#160;444): &#8220;One who dwells as a settler for a limited period without the standing of the <em>ger</em> within the community.&#8221;<br><br>
+&#8226; <strong><em>sakhir</em> (&#x05E9&#x05BC;&#x05B8;&#x05DB;&#x05B4;&#x05D9;&#x05E8;) &#8212; hired labourer:</strong> A day-worker or contract employee. No covenant membership; excluded from passover (v.&#160;45). Also excluded from eating the holy things of the priests (Lev 22:10). A <em>sakhir</em> may be Israelite (Lev 25:53) but in his capacity as hired servant holds no covenant-feast right without the prerequisite of circumcision.<br><br>
+&#8226; <strong><em>eved</em> Israelite (&#x05E2&#x05B6;&#x05D1&#x05B6;&#x05D3;) &#8212; Israelite bondservant, released at seventh year or Jubilee:</strong> Protected by Mosaic law; cannot be treated with rigour; released at the appointed time (Lev 25:39&#8211;43; Deut 15:12). May keep passover as a member of the covenant household (Exod 12:44 applies to purchased servants who are circumcised).<br><br>
+&#8226; <strong><em>eved</em> non-Israelite &#8212; permanent chattel servant, inherited generationally:</strong> Leviticus 25:44&#8211;46: &#8220;Both thy bondmen and thy bondmaids, which thou shalt have, shall be of the heathen [<em>goyim</em>] that are round about you&#8230; ye shall take them as an inheritance for your children after you, to inherit them for a possession; they shall be your bondmen for ever.&#8221; The non-Israelite eved is permanently owned, treated with rigour permissible (Lev 25:46), and inherited generationally &#8212; a categorically different legal status from the Israelite eved. Gregory Chirichigno (<em>Debt-Slavery in Israel and the Ancient Near East</em>, JSOTSup 141, Sheffield Academic Press, 1993, pp.&#160;244&#8211;269): &#8220;Leviticus 25 constructs a dual-track system: Israelite debt-slaves are temporarily bound and protected; foreign slaves are permanently owned. The legal wall between these categories is categorical, not merely procedural.&#8221;
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">2 Chronicles 15:9 &#8212; Northern Israelites Called &#8220;Strangers&#8221; by Residential Status, Not Bloodline:</strong> &#8220;And he gathered all Judah and Benjamin, and the <em>strangers</em> with them out of Ephraim and Manasseh.&#8221; The word is <em>ger</em> &#8212; these are Israelites of Ephraim and Manasseh, northern kingdom tribes, called strangers because they sojourn outside their own tribal land in Judah. Their Israelite bloodline is unchanged; only their residential status qualifies them as <em>gerim</em>. The same linguistic analysis applies to every &#8220;stranger&#8221; passage in the prophets, Acts, and the epistles unless the co-text explicitly identifies the person as an ethnic non-Israelite.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Nehemiah 13:1&#8211;3 &#8212; &#8220;Mixed Multitude&#8221; as <em>nokrim</em>, Not <em>gerim</em>:</strong> &#8220;They separated from Israel all the mixed multitude.&#8221; The separated group are identified from Deuteronomy 23:3 as Ammonites and Moabites &#8212; <em>nokrim</em>, ethnic non-Israelites. Nehemiah explicitly contrasts this with Hezekiah&#8217;s inclusion of northern-kingdom Israelite <em>gerim</em> (2&#160;Chr 30). The same English word &#8220;mixed multitude&#8221; can denote either group depending on which Hebrew term underlies it. H.G.M. Williamson (<em>Ezra, Nehemiah</em>, WBC 16, Word Books, 1985, p.&#160;391): &#8220;The mixed multitude excluded in Nehemiah 13 are specifically identified as the nations whose exclusion Deuteronomy 23:3 mandates on ethnic grounds &#8212; not a general category of all non-Israelite residents.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Linguistic Context Applies:</strong> Six Hebrew legal terms&#8212;<em>ger</em>, <em>nokri</em>, <em>toshav</em>, <em>sakhir</em>, and two categories of <em>eved</em>&#8212;are collapsed into the single English words &#8220;stranger&#8221; and &#8220;servant,&#8221; erasing a precise legal taxonomy. Linguistic co-text analysis of each term within its clause, verse, and surrounding chapters restores the distinctions that determine who is included in the passover and who is excluded, who may be released and who is inherited. The apparently contradictory &#8220;stranger&#8221; passages (2&#160;Chr 30 includes; Neh 13 excludes) resolve immediately when the correct Hebrew term is identified in each case.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-2">
@@ -1966,6 +2046,23 @@ does not recognize these genres will systematically misinterpret the texts they 
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">2 (Literary Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">1 (Linguistic Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">27 (Liturgical Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">15 (Audience Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Matthew 23:13&#8211;36 &#8212; The Woe-Oracle Genre: Christ&#8217;s Prophetic Indictment of Pharisaic Scribal Practice as Covenant Failure Toward Scattered Israel</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Matthew 23:13&#8211;36; Isaiah 5:8&#8211;23; Amos 5:18&#8211;27; Habakkuk 2:6&#8211;19; Acts 15:1&#8211;5; Galatians 6:12&#8211;13 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">Matthew 23:13&#8211;36 is a structured woe-oracle sequence &#8212; seven woes delivered against the scribes and Pharisees &#8212; in a genre directly continuous with the prophetic woe-oracles of Isaiah, Amos, and Habakkuk. The woe-oracle form is a covenant lawsuit: it identifies a specific party, names a specific covenant violation, announces the consequence, and issues the divine verdict. Reading Matthew 23 as a genre-form means reading it as a prophetic lawsuit, not merely as moral criticism.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">Genre Structure of the Woe-Oracle in Matthew 23:</strong><br><br>
+<strong>The Seven-Woe Pattern:</strong> Seven woes in Matthew 23:13&#8211;36 follow the same genre architecture as Isaiah&#8217;s six-woe sequence (Isa 5:8&#8211;23) and Habakkuk&#8217;s five-woe taunt-oracle (Hab 2:6&#8211;19). Each woe: (1) addresses a specific party (&#8220;ye scribes and Pharisees, hypocrites&#8221;); (2) names the covenant violation; (3) announces the verdict. The sevenfold structure signals complete and final judgment &#8212; the same literary completeness seven has in the creation narrative and the Revelation plagues. R.T. France (<em>The Gospel of Matthew</em>, NICNT, Eerdmans, 2007, pp.&#160;856&#8211;862): &#8220;Matthew 23&#8217;s woe-sequence belongs to the same prophetic form-critical category as the woe-speeches of Isaiah and Habakkuk &#8212; a covenant-lawsuit whose verdict is delivered with the authority of one greater than the prophets.&#8221;<br><br>
+<strong>Woe 6 (v.&#160;15) &#8212; The Proselyte Woe:</strong> &#8220;Woe unto you, scribes and Pharisees, hypocrites! for ye compass sea and land to make one proselyte, and when he is made, ye make him twofold more the child of hell than yourselves.&#8221; Within the woe-oracle genre, this is not merely a criticism of missionary method. The covenant violation identified is: (a) the Pharisees recruit scattered Israelites (&#8220;proselytes&#8221; = Diaspora Israelites returning under Pharisaic halakhah); (b) the result of their recruitment is that these Israelites become &#8220;twofold more the child of hell&#8221; &#8212; meaning Pharisaic teaching makes their condition worse, not better. The covenant failure is leadership exploiting scattered Israel for political ends (glory in their flesh, Gal 6:13) rather than restoring them to the covenant through Christ.<br><br>
+<strong>Amos 5:18&#8211;27 &#8212; The Day of the LORD Woe and the Failure of Leadership:</strong> &#8220;Woe unto you that desire the day of the LORD! to what end is it for you? the day of the LORD is darkness, and not light.&#8221; Amos&#8217;s woe against those who desire the day of the LORD while practicing injustice and maintaining empty ritual (5:21&#8211;24: &#8220;I hate, I despise your feast days&#8230; But let judgment run down as waters&#8221;) is formally parallel to Christ&#8217;s woe against the Pharisees who maintain elaborate legal observance while neglecting &#8220;the weightier matters of the law, judgment, mercy, and faith&#8221; (Matt 23:23). Both woes are covenant lawsuits against Israel&#8217;s leadership for covenant formalism without substance.
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Genre Implication for the Proselyte Identity:</strong> Within the woe-oracle genre, the condemned party (Pharisaic leaders) and the harmed party (the &#8220;proselytes&#8221; made worse off) are both Israelite. The woe is not about a Gentile-conversion mission &#8212; the genre is a lawsuit within the covenant community. The &#8220;proselytes&#8221; compassed from sea to land are Diaspora Israelites being recruited by Pharisaic missionaries, exactly as the Pharisees&#8217; contemporaries (Paul, Barnabas) travel the same Diaspora network to the same synagogue communities of scattered Israelites. The genre of the woe-oracle locates the controversy entirely within Israel&#8217;s covenant community &#8212; two competing visions of covenant restoration for scattered Israelites, not a Jewish mission to ethnic Gentiles.</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Genre/Form Context Applies:</strong> Matthew 23:13&#8211;36 is formally a woe-oracle sequence &#8212; a prophetic covenant-lawsuit genre found in Isaiah 5, Amos 5, and Habakkuk 2. Recognizing the genre establishes that the indictment is directed within the covenant community (the Pharisees&#8217; treatment of their own scattered people) and that the &#8220;proselytes&#8221; of verse 15 are Diaspora Israelites harmed by Pharisaic teaching, not ethnic Gentiles converted from paganism. Genre analysis prevents the misreading that Matthew 23:15 is about a Gentile-conversion programme by situating the text in its correct prophetic-lawsuit form.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-4">
@@ -2600,6 +2697,27 @@ technically competent but fundamentally incomplete.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">1 (Linguistic Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">2 (Literary Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">20 (Typological Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">24 (Source/Tradition Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">The Passover-Circumcision-Restoration Chain: Exodus 12:48 &#8594; Deuteronomy 16:16 &#8594; Joshua 5 &#8594; 2 Chronicles 30 &#8594; Romans 2 &#8212; A Unified Intertextual System</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Exodus 12:43&#8211;49; Deuteronomy 16:16; Joshua 5:1&#8211;12; 2 Chronicles 15:1&#8211;9; 30:1&#8211;20; Nehemiah 13:1&#8211;3; Romans 2:25&#8211;29; Acts 2:1&#8211;11 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">Exodus 12:48 establishes a principle that generates a sustained intertextual chain across Torah, the Writings, and the New Testament: the circumcised <em>ger</em> (covenant sojourner) may keep the passover and &#8220;shall be as one that is born in the land.&#8221; This principle is not an abstraction; it is concretely fulfilled, tested, violated, and restored throughout the canonical narrative. Reading each passage in isolation produces contradictions; reading the intertextual chain dissolves them.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">The Chain:</strong><br><br>
+<strong>1. Exodus 12:48 (Principle Established):</strong> &#8220;When a stranger [<em>ger</em>] shall sojourn with thee, and will keep the passover to the LORD, let all his males be circumcised, and then let him come near and keep it.&#8221; Circumcision + sojourner status = full passover access. The stranger in view is the Israelite living outside his tribal land, not an ethnic non-Israelite. Cornelis Houtman (<em>Exodus</em>, HCOT Vol.&#160;2, Peeters, 2000, p.&#160;214): &#8220;The <em>ger</em> of v.&#160;48 is the diaspora Israelite &#8212; to be reincorporated through the covenant sign exactly as the wilderness generation was.&#8221;<br><br>
+<strong>2. Deuteronomy 16:16 (Sojourning Is Mandatory for All Israel):</strong> &#8220;Three times in a year shall all thy males appear before the LORD thy God in the place which he shall choose.&#8221; Every Israelite male who lives outside Jerusalem must travel there three times annually. While traveling he is by definition a <em>ger</em>. The Mosaic system makes all Israelites sojourners by function &#8212; &#8220;stranger&#8221; status is thus built into the law itself for all who live outside the covenant seat. This demolishes the assumption that &#8220;stranger&#8221; = non-Israelite: every faithful Israelite male is a stranger in transit three times per year.<br><br>
+<strong>3. Joshua 5:1&#8211;12 (Principle Fulfilled: Circumcision Then Passover):</strong> &#8220;And Joshua circumcised the children of Israel at the hill of the foreskins&#8221; (5:3). The second generation born in the wilderness &#8212; Israelites by blood who had not been circumcised &#8212; matches exactly the profile of Exodus 12:48&#8217;s <em>ger</em>: covenant bloodline, uncircumcised, outside the land. Joshua restores them: circumcision (5:2&#8211;9) &#8594; passover (5:10&#8211;11). Richard Nelson (<em>Joshua</em>, OTL, Westminster/John Knox, 1997, p.&#160;75): &#8220;Joshua 5 is an enacted citation of Exodus 12:48 &#8212; the ritual sequence of circumcision before passover makes explicit that covenant membership, not bloodline alone, is the prerequisite.&#8221;<br><br>
+<strong>4. 2 Chronicles 30 (Principle Extended to Northern Kingdom):</strong> Hezekiah invites &#8220;all Israel and Judah, and&#8230; Ephraim and Manasseh&#8221; (30:1) to Jerusalem for passover. Northern Israelites who had been without circumcision and the true God (2&#160;Chr 15:3) come in an unclean state. Hezekiah prays; God accepts them (30:18&#8211;20). This is Exodus 12:48 applied to the scattered northern kingdom. H.G.M. Williamson (<em>1 and 2 Chronicles</em>, NCB, Eerdmans, 1982, p.&#160;370): &#8220;Hezekiah&#8217;s passover in 2&#160;Chronicles 30 is explicitly modelled on the Exodus pattern and is directed at restoring northern Israelites to the covenant feast from which their separation had excluded them.&#8221;<br><br>
+<strong>5. Nehemiah 13:1&#8211;3 (Contrast: Ethnic Non-Israelites Excluded):</strong> &#8220;They separated from Israel all the mixed multitude&#8221; &#8212; identified by Deuteronomy 23:3 as Ammonites and Moabites. This is not the Exodus 12:48 <em>ger</em>-inclusion principle; it is the Exodus 12:43 <em>nokri</em>-exclusion principle. The same English word &#8220;separated&#8221; masks the opposite dynamic: Hezekiah draws Israelite <em>gerim</em> in; Nehemiah drives ethnic non-Israelite <em>nokrim</em> out.<br><br>
+<strong>6. Romans 2:25&#8211;29 (Principle Applied to Scattered Israel):</strong> &#8220;Circumcision verily profiteth, if thou keep the law&#8230; he is a Jew, which is one inwardly; and circumcision is that of the heart, in the spirit.&#8221; Paul applies the Exodus 12:48 logic to northern-kingdom Israelites scattered among the nations who had lost circumcision practice through Diaspora assimilation. The outward circumcision is restored through the circumcision of the heart &#8212; the inner covenant restoration that makes the scattered Israelite again a full member of the covenant community. N.T. Wright (<em>Paul and the Faithfulness of God</em>, Fortress, 2013, Vol.&#160;II, pp.&#160;856&#8211;862): &#8220;Romans 2:25&#8211;29 does not introduce a new universalism; it extends the Exodus 12:48 logic of circumcision-as-covenant-restoration to the Diaspora situation Paul addresses.&#8221;<br><br>
+<strong>7. Acts 2:1&#8211;11 (Scattered Israelites Restored at Pentecost):</strong> &#8220;There were dwelling at Jerusalem Jews, devout men, out of every nation under heaven.&#8221; These are not ethnic Gentiles who converted to Judaism; they are Diaspora Israelites who made pilgrimage to Jerusalem according to Deuteronomy 16:16, exactly the <em>gerim</em>-Israelites who traveled to keep the feast. Acts 2:5 calls them &#8220;Jews&#8221; &#8212; the intertextual chain from Exodus 12 to Deuteronomy 16:16 to Acts 2 shows their identity as Israelites fulfilling the Mosaic pilgrimage obligation. Max Dimont (<em>Jews, God and History</em>, Simon &amp; Schuster, 1962, p.&#160;149): &#8220;They formed the centers of the organizations (churches) which Paul founded.&#8221;
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Framework Note:</strong> Every time the New Testament speaks of &#8220;Gentiles&#8221; or &#8220;strangers&#8221; receiving the covenant, the intertextual chain traces the passage back to scattered northern-kingdom Israelites (called by those names through Diaspora assimilation &#8212; 2&#160;Kgs 17:6&#8211;23; Hos 1:9&#8211;10; Rom 9:25&#8211;26) who are being restored to the passover-circumcision covenant sequence that Exodus 12:48 and Joshua 5 establish. N.T. Wright (ibid., pp.&#160;1180&#8211;1192): &#8220;The fulness of the Gentiles [<em>plērōma tōn ethnōn</em>] in Romans 11:25 is best read as the full number of the scattered northern-kingdom Israelites &#8212; the <em>goyim</em> of Hosea 1:9&#8211;10, now being restored.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Intertextual Context Applies:</strong> Intertextual analysis traces the passover-circumcision-restoration principle from Exodus 12:48 through Deuteronomy 16:16, Joshua 5, 2 Chronicles 30, Romans 2, and Acts 2. Each passage is a node in a canonical network. Reading any one node in isolation creates apparent contradiction (How can &#8220;strangers&#8221; be both included and excluded at the passover?); reading the full intertextual chain resolves the contradiction by distinguishing <em>ger</em>-Israelites from <em>nokri</em>-foreigners, and by showing that every New Testament restoration passage is a fulfilment of the Exodus 12:48 &#8220;circumcised-<em>ger</em> restored to passover&#8221; principle.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-6">
@@ -4330,6 +4448,24 @@ accurate interpretation.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">7 (Historical Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">9 (Geographical Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">12 (Sociological Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">19 (Ideological Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Leviticus 25:39&#8211;46 &#8212; Two Servant Categories: The Ancient Near Eastern Legal Framework Underlying the Biblical Distinction</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Leviticus 25:39&#8211;46; Exodus 21:2&#8211;6; Deuteronomy 15:12&#8211;18; 2 Chronicles 15:1&#8211;9; Nehemiah 5:1&#8211;13 (KJV); ANE comparative law: Code of Hammurabi; Nuzi tablets</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The Mosaic law distinguishes two categorically different servant statuses&#8212;Israelite bondservant and non-Israelite chattel servant&#8212;within a broader ancient Near Eastern legal tradition that likewise distinguished between temporary debt-slavery and permanent hereditary slavery. The cultural context of Leviticus 25:39&#8211;46 is essential for reading the New Testament&#8217;s language about &#8220;servants,&#8221; &#8220;bondage,&#8221; and &#8220;redemption&#8221; correctly.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">The Leviticus 25 Dual-Track System:</strong><br><br>
+<strong>Israelite Bondservant (vv. 39&#8211;43):</strong> &#8220;And if thy brother that dwelleth by thee be waxen poor, and be sold unto thee; thou shalt not compel him to serve as a bondservant: But as an hired servant, and as a sojourner, he shall be with thee, and shall serve thee unto the year of jubile. And then shall he depart from thee&#8230; thou shalt not rule over him with rigour.&#8221; The Israelite bond-servant: (a) cannot be treated with rigour; (b) must be released at the Jubilee; (c) retains his status as a member of the covenant community.<br><br>
+<strong>Non-Israelite Permanent Servant (vv. 44&#8211;46):</strong> &#8220;Both thy bondmen and thy bondmaids, which thou shalt have, shall be of the heathen [<em>goyim</em>] that are round about you&#8230; they shall be your bondmen for ever: but over your brethren the children of Israel, ye shall not rule one over another with rigour.&#8221; The non-Israelite servant: (a) is inherited generationally; (b) is permanent chattel; (c) may be treated with rigour. Gregory Chirichigno (<em>Debt-Slavery in Israel and the Ancient Near East</em>, JSOTSup 141, Sheffield Academic Press, 1993, p.&#160;248): &#8220;Leviticus 25 establishes the sharpest legal divide in Israelite society: the Israelite debtor-slave is a temporarily indebted kinsman; the foreign slave is a permanent acquisition. The same word <em>eved</em> covers both, but the legal regimes are categorically different.&#8221;
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">ANE Comparative Law &#8212; the Same Distinction in the Wider World:</strong> The Code of Hammurabi (c. 1754 BC, Laws 117&#8211;119) distinguishes debt-slavery (limited term, family released after three years) from war-captive slavery (permanent). The Nuzi tablets from 15th-century Mesopotamia record both adoption-as-slavery for debt and permanent chattel status. Israel&#8217;s law is structurally parallel but introduces one decisive moral innovation: the Israelite bondservant&#8217;s status is protected by covenant law in a way the Babylonian system does not protect its equivalent. Victor Matthews &amp; Don Benjamin (<em>Old Testament Parallels</em>, Paulist Press, 3rd ed., 2006, pp.&#160;132&#8211;137): &#8220;The Israelite laws on debt-slavery in Exodus 21, Leviticus 25, and Deuteronomy 15 operate within the same ancient Near Eastern debt-slavery framework but impose covenant-obligations on the master that have no parallel in Mesopotamian codes.&#8221;</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">The Traveling Israelite as &#8220;Stranger&#8221; &#8212; Cultural Sojourning Practice:</strong> Israelite males were obligated to appear at Jerusalem three times annually (Deut 16:16). The journey required sojourning in other tribal territories or foreign land. A man sojourning in a region not his own was a <em>ger</em> by legal and social status in that locale, even while being a full Israelite by birth. This cultural reality means that &#8220;stranger&#8221; in both the Hebrew and Greek worlds is a relational term (outsider to this locale) not an ethnic term. 2 Chronicles 15:9 applies this directly: Ephraim and Manasseh men sojourning in Judah are called &#8220;strangers&#8221; &#8212; Israelites by blood, sojourners by address.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">2 Chronicles 15:1&#8211;9 &#8212; The Northern Kingdom as &#8220;Without Law, Without the True God&#8221;:</strong> &#8220;Now for a long season Israel hath been without the true God, and without a teaching priest, and without law&#8221; (15:3). The cultural description of the northern kingdom matches exactly the language Ephesians 2:11&#8211;12 uses: &#8220;without Christ, being aliens from the commonwealth of Israel, and strangers from the covenants of promise&#8230; without God in the world.&#8221; Same cultural-legal condition; same people (northern Israel); same solution (return to the covenant community). Sara Japhet (<em>I &amp; II Chronicles</em>, OTL, Westminster/John Knox, 1993, p.&#160;722): &#8220;The condition of the northern kingdom described in 2 Chronicles 15:3 &#8212; no true God, no teaching priest, no law &#8212; is a covenant-abandonment state, not an ethnic-otherness state. Recovery is possible because the bloodline is intact; only the covenant practice has been lost.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Cultural Context Applies:</strong> Ancient Near Eastern legal culture distinguished two servant categories by covenant status and bloodline, not merely by economic circumstances. The same distinction appears in the Mosaic system (Lev 25:39&#8211;46) and explains why the same Hebrew word <em>eved</em> describes both the released Israelite bondservant and the permanently-inherited non-Israelite slave. Culturally, &#8220;stranger&#8221; (<em>ger</em>) describes residential status, not ethnicity &#8212; every traveling Israelite was a <em>ger</em> in the territory he passed through. Reading &#8220;stranger&#8221; or &#8220;servant&#8221; in the New Testament without this cultural legal background produces the systematic error of treating Israelite-by-blood-but-displaced individuals as ethnic Gentiles.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-9">
@@ -4796,6 +4932,24 @@ subjugation under foreign powers.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">7 (Historical Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">8 (Cultural Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">11 (Political Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">12 (Sociological Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Leviticus 25:39&#8211;55; Exodus 21:2&#8211;11 &#8212; The Socio-Economic Architecture of Two Servant Classes: Release, Rigour, and Redemption</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Leviticus 25:39&#8211;55; Exodus 21:2&#8211;11; Deuteronomy 15:12&#8211;18; Jeremiah 34:8&#8211;22; Nehemiah 5:1&#8211;13 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The Mosaic law establishes two socio-economically distinct servant categories whose difference is enforced not merely by moral exhortation but by the sabbatical-year and jubilee economic cycles. The Israelite bondservant operates within the covenant&#8217;s debt-relief system; the non-Israelite servant is outside that system entirely. Reading &#8220;bondage&#8221; or &#8220;freedom&#8221; in the prophets or epistles requires identifying which category the text addresses.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">The Two Release Mechanisms and Their Beneficiaries:</strong><br><br>
+<strong>Sabbatical Year Release (Exod 21:2; Deut 15:12):</strong> &#8220;If thou buy an Hebrew servant, six years he shall serve: and in the seventh he shall go out free for nothing.&#8221; The six-year release is exclusive to the <em>Hebrew</em> (Israelite) servant. The same cycle is described in Deuteronomy 15:12 as applying to &#8220;thy brother, an Hebrew man.&#8221; No equivalent release applies to non-Israelite servants. John Walton (<em>Ancient Israelite Literature in Its Cultural Context</em>, Zondervan, 1989, p.&#160;91): &#8220;The sabbatical-year debt release of Exodus 21:2 is explicitly restricted to the Hebrew servant &#8212; the linguistic marker &#8216;thy brother&#8217; in Deuteronomy 15 reinforces that the covenant-kinship category is the basis for the economic protection.&#8221;<br><br>
+<strong>Jubilee Release (Lev 25:39&#8211;43, 54&#8211;55):</strong> &#8220;And then shall he depart from thee&#8230; in the year of the jubile he shall go out, both he and his children with him&#8221; (25:41, 54). The jubilee release applies to the Israelite bondservant and his family. Leviticus 25:46 explicitly excludes non-Israelite servants from this provision: &#8220;they shall be your bondmen for ever.&#8221; The jubilee is thus an Israelite-specific covenant institution &#8212; not a universal economic reset. Christopher Wright (<em>Old Testament Ethics for the People of God</em>, IVP, 2004, pp.&#160;179&#8211;192): &#8220;The jubilee&#8217;s economic provisions are covenant-internal: they govern relations between Israelites within the covenant community. The non-Israelite servant falls outside the covenant&#8217;s protective economic sphere entirely.&#8221;
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">&#8220;Not Ruled with Rigour&#8221; vs. &#8220;Ruled with Rigour&#8221;:</strong> Leviticus 25:43 commands: &#8220;Thou shalt not rule over him [the Israelite] with rigour.&#8221; Leviticus 25:46 permits rigour over the non-Israelite servant. The term <em>b&#x0259;parekh</em> (with harshness/rigor) echoes Exodus 1:13&#8211;14, where Egypt ruled Israel &#8220;with rigour.&#8221; The law makes Egypt&#8217;s treatment of Israel illegal for Israelites to apply to one another &#8212; and explicitly permits it only toward non-Israelite servants. This double standard is socio-economically absolute: there are two servant statuses, two legal regimes, enforced by two different covenant relationships to the land.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">Nehemiah 5 &#8212; Israelites Reducing Fellow Israelites to Prohibited Bondage:</strong> Nehemiah 5:1&#8211;13 records Israelites pledging their children and fields to fellow Israelites for debt &#8212; reducing Israelite brethren to a condition the law prohibits. Nehemiah&#8217;s rebuke (5:7&#8211;9) explicitly appeals to the covenant requirement to release Israelite brothers: &#8220;We after our ability have redeemed our brethren the Jews.&#8221; The socio-economic context confirms the bloodline-covenant distinction is operational even in the post-exilic period.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">The Traveling Israelite as Economic &#8220;Stranger&#8221;:</strong> Deuteronomy 16:16 mandates annual pilgrimage to Jerusalem. During travel, an Israelite is a sojourner (<em>ger</em>) in unfamiliar territory: without his clan, without access to his land&#8217;s produce, dependent on local hospitality. This temporary economic displacement is the social reality behind &#8220;stranger&#8221; in much of the biblical narrative. An Israelite sojourning away from his tribal territory is not an ethnic foreigner &#8212; he is an economically displaced Israelite. The legislation in Deuteronomy 23:19&#8211;20 about interest applies this: Israelites may not charge one another interest, but may charge the <em>nokri</em> (ethnic foreigner). The category boundary is covenant-bloodline, not residential.</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Socio-Economic Context Applies:</strong> The two-servant legal system of Leviticus 25 is enforced through the covenant&#8217;s economic institutions&#8212;sabbatical-year release, jubilee, and the prohibition on rigour toward Israelite bondservants. Socio-economic context analysis shows that &#8220;bondage&#8221; and &#8220;release&#8221; in the prophets and epistles operate within this two-track system: Israelite servants are temporarily bound and covenantally protected; non-Israelite servants are permanently bound and outside covenant protections. The same English word &#8220;servant&#8221; covers both tracks, making socio-economic context analysis essential to determining which category any given text addresses.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-11">
@@ -5020,6 +5174,24 @@ regathering of Hellenized Israelites back to covenant identity.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">7 (Historical Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">8 (Cultural Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">10 (Socio-Economic Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">19 (Ideological Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Matthew 23:15; Isaiah 56:10&#8211;11; Micah 3:1&#8211;5 &#8212; The Pharisaic Political Programme: Recruiting Scattered Israelites, Not Converting Ethnic Gentiles</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Matthew 23:15; Isaiah 56:10&#8211;11; Micah 3:1&#8211;5; Galatians 6:12&#8211;13; Acts 15:1&#8211;5; 1 Maccabees 1:11&#8211;15 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">Matthew 23:15 contains one of the most politically revealing statements in the New Testament about the Pharisaic programme: &#8220;Ye compass sea and land to make one proselyte.&#8221; The vast geographic effort for a single proselyte is explicable only if the Pharisees were not conducting a general Gentile-conversion mission but rather targeting specific communities of Diaspora Israelites &#8212; scattered northern and southern kingdom Israelites assimilated among the nations &#8212; to bring them under Pharisaic interpretation of Torah and the sacrificial system. Political context analysis exposes the ideological stakes of this mission and Paul&#8217;s counter-position.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">The Political Anatomy of Matthew 23:15:</strong><br><br>
+<strong>&#8220;Compass sea and land&#8221; &#8212; Deliberate, Costly, Targeted Outreach:</strong> The phrase implies systematic travel across the Mediterranean Diaspora &#8212; the same network of synagogues Paul later travels. These synagogues are not communities of Gentile converts; they are communities of Diaspora Israelites who maintained some degree of Torah practice alongside their Hellenistic assimilation. The Pharisees&#8217; political goal is to expand their constituency among these communities: bring them under Pharisaic halakhah, re-attach them to Temple sacrifice, and expand the tax and influence base. W.D. Davies &amp; Dale Allison (<em>A Critical and Exegetical Commentary on the Gospel According to Saint Matthew</em>, ICC, T&amp;T Clark, 1997, Vol.&#160;III, pp.&#160;283&#8211;287): &#8220;The &#8216;proselyte&#8217; of Matthew 23:15 is not necessarily an ethnic Gentile; the Diaspora synagogue communities targeted by Pharisaic missionaries included large numbers of assimilated Israelites whose attachment to Torah practice varied widely.&#8221;<br><br>
+<strong>Isaiah 56:10&#8211;11 &#8212; The Prophetic Indictment of the Same Leadership:</strong> &#8220;His watchmen are blind: they are all ignorant, they are all dumb dogs, they cannot bark; sleeping, lying down, loving to slumber. Yea, they are greedy dogs which can never have enough, and they are shepherds that cannot understand: they all look to their own way, every one for his gain, from his quarter.&#8221; Isaiah&#8217;s condemnation of the corrupt shepherds who fail their scattered sheep directly parallels Christ&#8217;s indictment of the Pharisees in Matthew 23. The &#8220;watchmen&#8221; who are &#8220;blind&#8221; and &#8220;greedy&#8221; are Israel&#8217;s religious leadership seeking political and economic advantage from the scattered covenant people &#8212; the same people the prophets promise to regather. Isaiah&#8217;s political context is the Assyrian and Babylonian exile period; Christ&#8217;s political context is its New Testament aftermath among the Diaspora.<br><br>
+<strong>Micah 3:1&#8211;5 &#8212; Rulers Who Prey on the People for Gain:</strong> &#8220;And I said, Hear, I pray you, O heads of Jacob, and ye princes of the house of Israel&#8230; Who hate the good, and love the evil; who pluck off their skin from off them&#8230; Then shall they cry unto the LORD, but he will not hear them&#8230; Thus saith the LORD concerning the prophets that make my people err, that bite with their teeth, and cry, Peace.&#8221; Micah&#8217;s &#8220;heads of Jacob&#8221; who exploit the people for gain are the same leadership class Christ confronts. The political context is the same: covenant leadership using their position to extract religious tribute from scattered Israelites rather than to restore them to the covenant.<br><br>
+<strong>Galatians 6:12&#8211;13 &#8212; Paul Names the Political Motive:</strong> &#8220;As many as desire to make a fair shew in the flesh, they constrain you to be circumcised; only lest they should suffer persecution for the cross of Christ. For neither they themselves who are circumcised keep the law; but desire to have you circumcised, that they may glory in your flesh.&#8221; Paul identifies the Pharisaic mission&#8217;s political motivation: &#8220;glory in your flesh&#8221; &#8212; adding Diaspora Israelites to their census of circumcised adherents to demonstrate political strength and avoid Roman suspicion. The target of this circumcision pressure (the Galatians) are scattered northern-kingdom Israelites (Acts 15:1; 2&#160;Kgs 17:6&#8211;23; Hos 1:9&#8211;10; Rom 9:25&#8211;26) being used as political leverage.
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Paul&#8217;s Counter-Political Position:</strong> Acts 15:1 records the Pharisaic position: &#8220;Except ye be circumcised after the manner of Moses, ye cannot be saved.&#8221; The &#8220;ye&#8221; are Diaspora Israelites in Antioch &#8212; the same communities Pharisees travel sea and land to recruit. Paul&#8217;s counter-position (Acts 15:10&#8211;11; Gal 5:2&#8211;6) is not that circumcision is wrong for Israelites but that the Pharisaic requirement to be circumcised-for-salvation ties these Diaspora Israelites to a sacrificial system that Christ has fulfilled. Paul teaches that Christ IS the passover (1&#160;Cor 5:7) &#8212; the passover-circumcision-restoration chain of Exodus 12:48 is fulfilled inwardly (Rom 2:29) &#8212; so demanding the outward sign as a salvific requirement is to deny that the antitype (Christ) has arrived. James D.G. Dunn (<em>The Epistle to the Galatians</em>, BNTC, A&amp;C Black, 1993, pp.&#160;16&#8211;17): &#8220;The circumcision controversy in Galatians is not between Jewish universalism and Christian Gentile inclusion; it is between two Israelite groups over what covenant restoration for scattered Israelites requires &#8212; Pharisaic outward circumcision plus law-observance, or Paul&#8217;s inward circumcision of the heart through Christ.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Political Context Applies:</strong> Political context analysis of Matthew 23:15 exposes the Pharisaic programme as a targeted mission to Diaspora Israelite communities&#8212;not a general Gentile-conversion effort&#8212;motivated by the political goal of expanding their halakhic constituency among scattered northern and southern kingdom Israelites. Isaiah 56:10&#8211;11 and Micah 3:1&#8211;5 provide the prophetic political indictment of the same leadership pattern. Paul&#8217;s mission (Acts 15; Galatians) operates in the same political arena but with the opposite agenda: teaching scattered Israelites that Christ fulfils the passover-circumcision restoration, making Pharisaic outward circumcision as a salvific requirement obsolete.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-12">
@@ -5249,6 +5421,24 @@ fulfillment of the prophets&#x27; promise that scattered Israel would be restore
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">8 (Cultural Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">10 (Socio-Economic Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">11 (Political Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">15 (Audience Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Acts 2:1&#8211;11; Acts 13:14&#8211;48 &#8212; The Diaspora Synagogue as an Israelite Social Institution, Not a Gentile-Conversion Mechanism</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Acts 2:1&#8211;11; 13:14&#8211;48; 17:1&#8211;4; Romans 2:25&#8211;29; 2 Kings 17:6&#8211;23 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The Diaspora synagogue &#8212; the institution Paul enters in every city he visits &#8212; is a sociological product of Israelite exile and scattering, not a centre for Gentile conversion. Sociological analysis of the synagogue communities of Acts establishes that their membership consisted primarily of Diaspora Israelites (scattered northern and southern kingdom), not ethnic Gentiles who had converted from paganism. This transforms the reading of every &#8220;Gentile&#8221; reference in Paul&#8217;s letters: the social institution he addresses is Israelite.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">Sociological Profile of the Diaspora Synagogue:</strong><br><br>
+<strong>Origin &#8212; Product of Exile:</strong> The Diaspora synagogue emerges from the Babylonian exile of the southern kingdom (6th century BC) and the earlier Assyrian exile of the northern kingdom (722&#8211;721 BC; 2&#160;Kgs 17:6). By the first century, Israelite communities were established across Parthia, Media, Elam, Mesopotamia, Cappadocia, Pontus, Asia, Phrygia, Pamphylia, Egypt, and Cyrene &#8212; the exact list of Acts 2:9&#8211;11. These communities maintained Torah practice (in varying degrees), Sabbath observance, and Hebrew scripture reading. Lee I. Levine (<em>The Ancient Synagogue: The First Thousand Years</em>, Yale University Press, 2000, pp.&#160;19&#8211;49): &#8220;The Diaspora synagogue is fundamentally an institution of Israelite communal life in exile &#8212; preserving ethnic-religious identity, not recruiting Gentile membership.&#8221;<br><br>
+<strong>Acts 2:5 &#8212; &#8220;Jews, Devout Men, Out of Every Nation&#8221;:</strong> &#8220;And there were dwelling at Jerusalem Jews, devout men, out of every nation under heaven.&#8221; The Acts 2 congregation at Pentecost is explicitly called &#8220;Jews&#8221; &#8212; not &#8220;Gentiles who converted.&#8221; They come from every nation because northern and southern kingdom exiles had been distributed across those exact nations by the Assyrian and Babylonian deportations. Their presence in Jerusalem fulfils Deuteronomy 16:16 (pilgrimage to Jerusalem for Pentecost). Sociologically, they are Diaspora Israelites maintaining a Jewish pilgrimage practice, not Gentile converts who happened to be in Jerusalem.<br><br>
+<strong>Acts 13:14&#8211;48 &#8212; The Pisidian Antioch Synagogue:</strong> Paul enters the synagogue (13:14), addresses &#8220;Men of Israel, and ye that fear God&#8221; (13:16), then &#8220;Men and brethren, children of the stock of Abraham&#8221; (13:26). The &#8220;God-fearers&#8221; are Diaspora Israelites whose degree of Torah practice varies &#8212; James D.G. Dunn (<em>The Acts of the Apostles</em>, Epworth, 1996, p.&#160;26): &#8220;God-fearers at Pisidian Antioch are already part of Israel&#8217;s extended covenant community&#8221; &#8212; not ethnic Gentiles exploring a foreign religion. Paul&#8217;s audience throughout is identified sociologically as &#8220;children of the stock of Abraham&#8221; (v.&#160;26) &#8212; Israelites.<br><br>
+<strong>Max Dimont on the Diaspora Synagogue:</strong> &#8220;Wherever Jews had migrated, they set up their own communities, schools, courts, and houses of prayer. They formed the centers of the organizations (churches) which Paul founded.&#8221; (<em>Jews, God and History</em>, Simon &amp; Schuster, 1962, p.&#160;149). Dimont&#8217;s observation is sociologically decisive: Paul&#8217;s &#8220;churches&#8221; were Israelite communal institutions carried over from the synagogue network &#8212; not new Gentile-membership organizations.
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Romans 2:25&#8211;29 &#8212; The Sociological Condition Paul Addresses:</strong> &#8220;For circumcision verily profiteth, if thou keep the law: but if thou be a breaker of the law, thy circumcision is made uncircumcision.&#8221; Paul addresses the sociological condition of Diaspora Israelites whose covenant practice has lapsed through assimilation &#8212; the &#8220;uncircumcision&#8221; of the northern kingdom described in 2 Chronicles 15:3 (&#8220;without the true God, without law&#8221;). These Israelites are sociologically in the position of the Exodus 12:48 <em>ger</em>: covenant bloodline intact, covenant practice disrupted, eligible for restoration through circumcision of the heart (Rom 2:29). N.T. Wright (<em>Paul and the Faithfulness of God</em>, Fortress, 2013, Vol.&#160;II, p.&#160;860): &#8220;Romans 2:25&#8211;29 addresses a sociological reality: Diaspora Israelites whose circumcision has become covenantally void through law-breaking &#8212; and whose restoration comes through inward covenant renewal.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Sociological Context Applies:</strong> Sociological analysis of the Diaspora synagogue establishes that Paul&#8217;s mission communities were Israelite social institutions formed by exile and scattering, not Gentile-conversion centres. The &#8220;Jews, devout men, out of every nation&#8221; at Pentecost (Acts 2:5), the &#8220;God-fearers&#8221; at Pisidian Antioch (Acts 13:16), and the &#8220;children of the stock of Abraham&#8221; addressed throughout Paul&#8217;s letters are sociologically Diaspora Israelites. Sociological context analysis of these institutions transforms every &#8220;Gentile&#8221; reference in Paul from a designation of ethnic non-Israelites to a description of Diaspora Israelites whose assimilation had rendered them functionally as the nations.</div>
+</div>
 </div></div>
 </div>
 <div id="cat-panel-cat3" class="cat-panel">
@@ -5965,6 +6155,24 @@ testaments — only the scattering and regathering of the same covenant people.<
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">13 (Authorial Intent)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">14 (Context of Production)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">16 (Reader-Response Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">12 (Sociological Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Exodus 12:43&#8211;51; Deuteronomy 16:16 &#8212; The Original Audience of the Passover Ordinance and Its Intended Recipients in 2 Chronicles 30</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Exodus 12:43&#8211;51; Deuteronomy 16:16; 2 Chronicles 30:1&#8211;20; Acts 2:1&#8211;11; Romans 2:25&#8211;29 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">Audience analysis of Exodus 12:43&#8211;51 identifies two original addressees: (a) the congregation of Israel in Egypt at the first passover (12:3: &#8220;Speak ye unto all the congregation of Israel&#8221;); and (b) subsequent generations of Israelites observing the passover in the land (12:24&#8211;27: &#8220;Ye shall observe this thing for an ordinance to thee and to thy sons for ever&#8221;). The <em>ger</em>-inclusion clause (12:48) specifically addresses the audience of future Israelites who may be sojourning outside their tribal territory &#8212; a situation built into the law by Deuteronomy 16:16&#8217;s mandatory pilgrimage requirement.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">Audience Progression Through the Canonical Text:</strong><br><br>
+<strong>Exodus 12 Audience &#8212; Israel in Egypt:</strong> The immediate audience is the congregation of Israel receiving the first passover instructions in Egypt. The <em>nokri</em> (v.&#160;43) exclusion addresses Egyptian and other non-Israelite populations present. The <em>ger</em> inclusion (v.&#160;48) addresses Israelites who have been dispersed and sojourn with others &#8212; a situation already present in Egypt, where Israelites were enslaved in different locations and family units were separated.<br><br>
+<strong>Deuteronomy 16:16 Audience &#8212; All Israelite Males, Everywhere:</strong> &#8220;Three times in a year shall all thy males appear before the LORD thy God in the place which he shall choose&#8221; (Deut 16:16). The audience is every Israelite male living anywhere in the known world. Each must travel to Jerusalem three times a year. While traveling, each becomes a <em>ger</em>. The passover ordinance of Exodus 12:48 &#8212; the circumcised <em>ger</em> may keep it &#8212; is thus designed with this audience in mind: traveling Israelite males who sojourn in territories not their own.<br><br>
+<strong>2 Chronicles 30 Audience &#8212; Northern Kingdom Israelites Invited by Hezekiah:</strong> &#8220;So they established a decree to make proclamation throughout all Israel, from Beer-sheba even to Dan, that they should come to keep the passover&#8221; (30:5). Hezekiah&#8217;s audience is explicitly the northern kingdom Israelites &#8212; Ephraim, Manasseh, Zebulun, Issachar (30:18) &#8212; who had been &#8220;without the true God, and without a teaching priest, and without law&#8221; (2&#160;Chr 15:3). These are the exact audience Exodus 12:48 addresses: Israelites by blood, uncircumcised through covenant neglect, being invited back to the covenant feast. H.G.M. Williamson (<em>1 and 2 Chronicles</em>, NCB, Eerdmans, 1982, p.&#160;370): &#8220;The northern Israelite audience of 2&#160;Chronicles 30 is distinguished from the ethnic-Gentile audience by their Israelite tribal identity &#8212; they are not converts but returning members of the covenant community.&#8221;<br><br>
+<strong>Acts 2:1&#8211;11 Audience &#8212; Diaspora Israelites at Pentecost:</strong> &#8220;There were dwelling at Jerusalem Jews, devout men, out of every nation under heaven&#8221; (2:5). The audience at Pentecost fulfils Deuteronomy 16:16: these are Israelite men who have come to Jerusalem for the feast of weeks (Pentecost). Acts 2:5 calls them &#8220;Jews&#8221; &#8212; they are Diaspora Israelites from Parthia, Media, Elam, Mesopotamia (2:9&#8211;11), regions where northern-kingdom Israelites had been exiled (2&#160;Kgs 17:6). Their audience status is Israelite, not Gentile.
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Romans 2:25&#8211;29 Audience &#8212; Scattered Israelites with the Law in Name Only:</strong> &#8220;For circumcision verily profiteth, if thou keep the law: but if thou be a breaker of the law, thy circumcision is made uncircumcision.&#8221; Paul addresses Israelites who nominally bear the covenant sign but have broken the law in practice &#8212; exactly the northern-kingdom Israelites described in 2 Chronicles 15:3. The audience is not ethnic Gentiles being &#8220;grafted in&#8221; but covenant Israelites whose circumcision has become functionally null through disobedience. Restoring covenant obedience restores their passover eligibility &#8212; the Exodus 12:48 principle applied to the Diaspora age. N.T. Wright (<em>Paul and the Faithfulness of God</em>, Fortress, 2013, Vol.&#160;II, p.&#160;860): &#8220;Romans 2:25&#8211;29 addresses Israelites in the Diaspora whose covenant practice has lapsed &#8212; Paul&#8217;s &#8216;circumcision of the heart&#8217; is the covenant restoration that makes them again eligible for what the Torah calls the passover community.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Audience Context Applies:</strong> Audience analysis traces the original recipients of the passover ordinance (Israel in Egypt), its legal extension to all traveling Israelite males (Deut 16:16), its application to uncircumcised northern-kingdom Israelites (2&#160;Chr 30), and its New Testament fulfilment among Diaspora Israelites at Pentecost (Acts 2). Every link in the chain has the same audience: Israelites by blood who have been separated from covenant practice by displacement or exile, being restored through the circumcision-passover sequence that Exodus 12:48 establishes. Audience context collapses the false dichotomy between &#8220;Jew&#8221; and &#8220;Gentile&#8221; in these texts: the &#8220;Gentiles&#8221; being addressed are Israelites by another name.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-16">
@@ -6767,6 +6975,24 @@ inevitably reproduce the very power dynamics that those texts challenge.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">11 (Political Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">12 (Sociological Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">16 (Reader-Response Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">19 is also related to all CAT6 types</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">Acts 15:1&#8211;35; Galatians 2:1&#8211;21 &#8212; Two Competing Ideologies of Restoration for Scattered Israel: Pharisaic Circumcision-as-Salvation vs. Paul&#8217;s Christ-as-Fulfilment</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Acts 15:1&#8211;35; Galatians 2:1&#8211;21; 6:12&#8211;15; Romans 2:25&#8211;29; Isaiah 56:10&#8211;11; Matthew 23:15 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The Jerusalem Council of Acts 15 is the ideological collision between two programmes of covenant restoration for the same population: scattered Diaspora Israelites. The Pharisaic ideological position (Acts 15:1, 5) requires circumcision and full Mosaic law observance as the mechanism of restoration. Paul&#8217;s ideological position (Acts 15:10&#8211;11; Gal 2:16; Rom 2:29) holds that Christ&#8217;s sacrificial fulfilment of the passover renders the outward circumcision requirement obsolete for restoration purposes. The two positions are not Jew-vs-Gentile; they are competing restoration programmes for Israelites.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">The Ideological Contest:</strong><br><br>
+<strong>Pharisaic Ideology (Acts 15:1, 5):</strong> &#8220;Except ye be circumcised after the manner of Moses, ye cannot be saved.&#8221; And of the Pharisees who believed: &#8220;That it was needful to circumcise them, and to command them to keep the law of Moses.&#8221; The ideological programme: (1) outward circumcision is the covenant entry requirement; (2) keeping the whole Mosaic law (including sacrifice) is the ongoing obligation; (3) therefore the Diaspora Israelites must be fully incorporated into the Mosaic system under Pharisaic interpretation. This is a restoration ideology: Pharisees believed they were restoring scattered Israelites to their covenant. Isaiah 56:10&#8211;11 identifies the ideological flaw: the shepherds who should restore the sheep instead use them for personal gain.<br><br>
+<strong>Paul&#8217;s Ideology (Acts 15:10&#8211;11; Gal 2:16; Rom 2:29):</strong> &#8220;Why tempt ye God, to put a yoke upon the neck of the disciples, which neither our fathers nor we were able to bear? But we believe that through the grace of the Lord Jesus Christ we shall be saved, even as they.&#8221; Paul&#8217;s restoration ideology: (1) Christ is &#8220;our passover&#8221; (1&#160;Cor 5:7) &#8212; the sacrifice system&#8217;s telos is fulfilled; (2) circumcision of the heart (Rom 2:29) replaces outward circumcision as the covenant-restoration mechanism for Diaspora Israelites; (3) therefore imposing outward circumcision as salvific denies Christ&#8217;s fulfilment. Paul is not anti-Torah; he is anti-Pharisaic-addition: the &#8220;tradition of the elders&#8221; (Matt 15:2) that made the passover-restoration process about political affiliation rather than covenant faith.<br><br>
+<strong>Galatians 6:12&#8211;13 &#8212; Paul Names the Ideological Motive:</strong> &#8220;As many as desire to make a fair shew in the flesh, they constrain you to be circumcised; only lest they should suffer persecution for the cross of Christ. For neither they themselves who are circumcised keep the law; but desire to have you circumcised, that they may glory in your flesh.&#8221; The ideological motivation is not theological consistency (&#8220;neither they themselves&#8230; keep the law&#8221;) but political self-preservation (&#8220;lest they should suffer persecution&#8221;) and social capital (&#8220;glory in your flesh&#8221;). James D.G. Dunn (<em>The Epistle to the Galatians</em>, BNTC, A&amp;C Black, 1993, p.&#160;340): &#8220;Galatians 6:13 exposes the circumcision party&#8217;s ideological inconsistency: their programme is not law-observance for its own sake but identity-marking of the Diaspora Israelites within their sphere of influence.&#8221;
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">The Target Population of Both Ideologies:</strong> Both the Pharisaic missionaries and Paul target the same Diaspora Israelite communities &#8212; the scattered northern and southern kingdom Israelites who maintained synagogue networks across the Mediterranean. These communities are called &#8220;Gentiles&#8221; (&#x1F17E;&#x03B8;&#x03BD;&#x03B7;, <em>ethnē</em>) in Greek usage because their Diaspora assimilation had made them functionally as the nations. Acts 15&#8217;s &#8220;Gentiles&#8221; are Israelites by blood whose covenant practice had lapsed &#8212; 2 Kings 17:6&#8211;23 (Assyrian exile of northern kingdom), Hosea 1:9&#8211;10 (declared &#8220;not my people&#8221;), Romans 9:25&#8211;26 (Paul&#8217;s quotation of Hosea confirming their identity). The ideological contest is entirely within Israel&#8217;s covenant family.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Proselyte as Ideological Term:</strong> &#8220;Proselyte&#8221; in the Pharisaic ideological system means: Diaspora Israelite or attached individual who has been brought under Pharisaic halakhah through circumcision. Paul&#8217;s counter-use (Rom 2:25&#8211;29) redefines the restoration mechanism: the &#8220;proselyte&#8221; who is restored is the one circumcised inwardly by the Spirit, whether or not outward circumcision accompanies it. Both are ideological claims about the same Diaspora Israelite population. N.T. Wright (<em>Paul and the Faithfulness of God</em>, Fortress, 2013, Vol.&#160;I, p.&#160;356): &#8220;The controversy over &#8216;proselytes&#8217; in Galatians and Acts 15 is not about Gentile universalism but about which restoration programme rightly applies to the scattered members of Israel&#8217;s covenant family.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Ideological Context Applies:</strong> Ideological context analysis identifies Acts 15 and Galatians as a contest between two Israelite restoration ideologies targeting the same Diaspora Israelite population. The Pharisaic ideology demands outward circumcision as salvific; Paul&#8217;s ideology holds that Christ&#8217;s sacrificial fulfilment makes inward circumcision of the heart the restoration mechanism. Neither ideology targets ethnic Gentiles; both target scattered northern and southern kingdom Israelites called &#8220;Gentiles&#8221; through Diaspora assimilation. The ideological context prevents the reading of Acts 15&#8217;s &#8220;Gentiles&#8221; as ethnic non-Israelites &#8212; they are Israelites in contested ideological territory.</div>
+</div>
 </div></div>
 </div>
 <div id="cat-panel-cat4" class="cat-panel">
@@ -7025,6 +7251,23 @@ the text — imposing a meaning the authors never stated.</p>
 <div style="display:flex;flex-wrap:wrap;gap:6px"><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">2 (Literary Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">4 (Intertextual Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">21 (Eschatological Context)</span><span style="background:rgba(255,215,0,.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px">24 (Source/Tradition Context)</span></div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">The Passover as Type; Joshua 5 Circumcision as Anti-type; Christ as the Passover Fulfilled &#8212; The Typological Structure of Covenant Restoration</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Exodus 12:1&#8211;51; Joshua 5:1&#8211;12; 1 Corinthians 5:7; Romans 2:29; Colossians 2:11&#8211;12; Ephesians 2:11&#8211;13 (KJV)</div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The passover of Exodus 12 functions typologically at multiple levels: as a type of Christ&#8217;s sacrifice, as a pattern of covenant inclusion through circumcision, and as a precedent for the restoration of scattered Israelites. Typological reading connects Exodus 12:48 (circumcised <em>ger</em> participates in the passover) to Joshua 5 (circumcision-then-passover for the wilderness generation) to the New Testament declaration that Christ is &#8220;our passover&#8221; (1&#160;Cor 5:7) and that the scattered Israelites are restored through the &#8220;circumcision of the heart&#8221; (Rom 2:29).</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">Typological Structure:</strong><br><br>
+<strong>Type 1 &#8212; Passover Lamb (Exod 12:3&#8211;13) &#8594; Christ (1&#160;Cor 5:7):</strong> &#8220;Christ our passover is sacrificed for us.&#8221; The passover lamb is the primary type; Christ its antitype. The blood on the doorpost protects the firstborn of Israel (Exod 12:13); Christ&#8217;s blood protects the covenant people from judgment. This typology is explicit in Paul and does not require interpretive argument &#8212; it is apostolic doctrine. The passover is not merely a memorial; it is a prefiguration of the exact mechanism of atonement: substitutionary blood sacrifice protecting the covenant people.<br><br>
+<strong>Type 2 &#8212; Circumcision Before Passover (Exod 12:48) &#8594; Circumcision of the Heart (Rom 2:29; Col 2:11&#8211;12):</strong> Exodus 12:48 makes circumcision the prerequisite for passover participation. Joshua 5 fulfils this type literally: the wilderness generation is circumcised before keeping the passover. The New Testament antitype: &#8220;Circumcision is that of the heart, in the spirit, and not in the letter&#8221; (Rom 2:29); &#8220;Ye are circumcised with the circumcision made without hands, in putting off the body of the sins of the flesh by the circumcision of Christ&#8221; (Col 2:11). The typological sequence &#8212; circumcision &#8594; covenant feast &#8212; is maintained: inward circumcision (through Christ&#8217;s sacrifice) &#8594; participation in the New Covenant meal (the Lord&#8217;s Supper). Richard Hays (<em>Echoes of Scripture in the Letters of Paul</em>, Yale University Press, 1989, pp.&#160;84&#8211;87): &#8220;Paul&#8217;s circumcision-of-the-heart language in Romans 2 is not merely metaphorical; it is a typological fulfilment of the Exodus 12:48 prerequisite for covenant-meal participation &#8212; applied to the scattered Israelites of the Diaspora whose outward circumcision had become covenantally void through law-breaking.&#8221;<br><br>
+<strong>Type 3 &#8212; <em>Ger</em> Restored (Exod 12:48; Josh 5) &#8594; Scattered Israel Restored (Eph 2:11&#8211;13):</strong> &#8220;But now in Christ Jesus ye who sometimes were far off are made nigh by the blood of Christ&#8221; (Eph 2:13). The &#8220;far off&#8221; are the scattered northern-kingdom Israelites &#8212; the <em>gerim</em> of Exodus 12:48, the uncircumcised of Joshua 5, the &#8220;without the true God&#8221; of 2&#160;Chronicles 15:3. The &#8220;blood of Christ&#8221; is the antitype of the passover blood: it provides the atonement that restores the scattered Israelite to the covenant community. The &#8220;middle wall of partition&#8221; (Eph 2:14) is the legal and residential barrier between the northern and southern kingdoms &#8212; the &#8220;uncircumcision&#8221; and &#8220;aliens from the commonwealth of Israel&#8221; are northern Israelites who lost circumcision post-Assyrian dispersion (2&#160;Kgs 17:6&#8211;23). N.T. Wright (<em>Paul and the Faithfulness of God</em>, Fortress, 2013, Vol.&#160;II, pp.&#160;956&#8211;960): &#8220;Ephesians 2:11&#8211;13 is a typological application of the Exodus restoration motif to the specific situation of northern-kingdom Israelites who, through Diaspora assimilation, had become functionally &#8216;Gentiles&#8217; but were now being brought near through Christ&#8217;s atoning work.&#8221;
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">Joshua 5 as the Central Typological Event:</strong> Joshua 5:1&#8211;12 is the typological hinge: uncircumcised Israelites (who match the profile of Exodus 12:48&#8217;s <em>ger</em>) are circumcised &#8594; the reproach of Egypt is rolled away &#8594; they keep the passover. The New Testament antitype: scattered Israelites circumcised inwardly by the Spirit &#8594; the reproach of covenant-separation removed by Christ&#8217;s blood &#8594; they participate in the covenant meal. Richard Nelson (<em>Joshua</em>, OTL, Westminster/John Knox, 1997, p.&#160;75): &#8220;Joshua 5 is the Old Testament antitype of the Exodus 12 type; the New Testament contains a further antitype in the spiritual circumcision and covenant meal of the apostolic communities.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Typological Context Applies:</strong> Typological context connects Exodus 12&#8217;s passover lamb (type of Christ&#8217;s sacrifice), the circumcision-before-passover prerequisite (type of circumcision of the heart), and the <em>ger</em>-restoration pattern (type of scattered Israelite restoration through Christ&#8217;s blood). The typological chain runs: Exod 12:48 &#8594; Josh 5 &#8594; Rom 2:29; Col 2:11&#8211;12; Eph 2:11&#8211;13. Reading Ephesians 2 without the typological background of Exodus 12 produces the error of treating the &#8220;far off&#8221; and &#8220;uncircumcision&#8221; as ethnic Gentiles rather than as scattered northern-kingdom Israelites being restored through the fulfilment of the exact typological pattern the passover establishes.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-21">
@@ -8158,6 +8401,25 @@ of their texts.</p>
   <div style="font-size:12px;color:var(--text2);line-height:1.8">The coordinated scholarly and institutional effort to displace the 1611 KJV from its position as the English-speaking world's authoritative Scripture began formally in 1881 with the simultaneous publication of two documents: (1) the Revised Version of the New Testament, the first officially authorized revision of the KJV since 1611, and (2) <em>The New Testament in the Original Greek</em> by Brooke Foss Westcott (Regius Professor of Divinity, Cambridge; later Bishop of Durham) and Fenton John Anthony Hort (Hulsean Professor of Divinity, Cambridge). These two Cambridge professors had worked on their new Greek text privately for twenty-eight years (1853–1881) before its publication. Their text departed from the Received Text in approximately 5,604 places in the New Testament alone — the equivalent of removing approximately one page of text from every five pages of the New Testament. The WESTCOTT-HORT TEXT privileged two Alexandrian manuscripts: Codex Vaticanus (B, so designated because it resides in the Vatican Library; dated to the 4th century AD) and Codex Sinaiticus (Aleph, discovered by Constantine von Tischendorf at St. Catherine's Monastery on the Sinai Peninsula in 1844 and 1859; also dated to the 4th century AD). Westcott and Hort designated these manuscripts as constituting a 'Neutral Text' — a text uncorrupted by scribal editing — and accorded them near-absolute authority over against the 5,000+ manuscripts of the Byzantine/Majority text tradition. Their methodology was immediately challenged by the foremost New Testament textual scholar of the 19th century, Dean John William Burgon (Dean of Chichester Cathedral, 1876–1888), who had personally collated manuscripts in the libraries of Rome, Paris, Oxford, Cambridge, the British Museum, and Mt. Athos. In <em>The Revision Revised</em> (1883, 640 pages), Burgon demonstrated with exhaustive reference to patristic citations, lectionary readings, and manuscript evidence that: (1) Vaticanus and Sinaiticus are among the most corrupt manuscripts in existence, not the purest; (2) the two manuscripts disagree with each other in 3,036 places in the Gospels alone (a fact later confirmed and expanded by Herman C. Hoskier in <em>Codex B and Its Allies</em>, 1914, Vol. 2, pp. 1–420); (3) both manuscripts omit entire sections present in the vast majority of manuscripts; (4) where they differ from the Byzantine tradition they are almost always wrong. Burgon wrote: 'The impurity of the Texts exhibited by Codices B and Aleph is not a matter of opinion but of fact... In the Gospels alone [Aleph] differs from the Received Text in 8972 places' (<em>The Revision Revised</em>, 1883, p. 12). The INSTITUTIONAL SUPPRESSION of Burgon's critique was swift. Despite the scholarly force of his arguments, the Revised Version — and subsequent translations based on the Westcott-Hort text — proceeded. The Revised Standard Version (1952), New American Standard Bible (1971), and New International Version (1978) all departed from the Received Text in favor of the Critical Text derived from Westcott and Hort's Alexandrian manuscripts. THE NIV SPECIFICALLY was produced by the New York Bible Society (later the International Bible Society) with a translation committee that included theologians and scholars from multiple denominations. The NIV's Committee on Bible Translation produced a text that differs from the KJV in over 64,000 places (Riplinger, <em>New Age Bible Versions</em>, 1993, p. 56). Its adoption of the dynamic equivalence method meant that theologically contested passages were resolved not by the Greek text but by committee consensus — embedding theological interpretation into the Scripture itself. THE STATISTICAL CASE FOR THE RECEIVED TEXT has been made in the late 20th century by Wilbur Pickering (Th.M., Dallas Theological Seminary; Ph.D., University of Toronto) in <em>The Identity of the New Testament Text</em> (1977, rev. 1980, rev. 2014): 'The evidence is overwhelming that the original text of the New Testament has been preserved in the Majority Text tradition. The Majority Text has better manuscript support, better patristic support, better lectionary support, and better internal evidence than the Critical Text' (pp. 166–168). Jakob Van Bruggen, in <em>The Ancient Text of the New Testament</em> (1976), demonstrated that the Church Fathers of the 2nd and 3rd centuries — writing before either Vaticanus or Sinaiticus were produced — cite a Greek text that agrees with the Byzantine/Majority tradition rather than the Alexandrian. This means the Alexandrian text cannot be 'earlier' than the Byzantine if the patristic citations represent the text in circulation in the 2nd century. THE MOVEMENT TO DISCREDIT THE KJV took on a specifically popular form with the publication of multiple 'Bible comparison' works arguing that the KJV is: (a) too archaic in language for modern readers; (b) based on inferior manuscripts; and (c) the product of a politically motivated king. All three claims are historically and textually unsupportable. The 'archaic language' argument proves too much — the KJV's Elizabethan/Jacobean English has been demonstrated to be comprehensible to any reader who engages with it for thirty minutes; the argument is essentially that Scripture should be translated into the lowest common linguistic denominator of each generation, producing an endless and irresolvable series of new translations. The 'inferior manuscripts' argument reverses the actual manuscript evidence (see Burgon, Hoskier, Van Bruggen, Pickering above). The 'politically motivated king' claim is the most historically egregious, and is addressed in the Historical Context section of this site. Gail Riplinger's <em>New Age Bible Versions</em> (1993, 690 pages) provides the most comprehensive English-language documentation of specific word changes in modern translations, with side-by-side comparisons demonstrating doctrinal consequences. Riplinger's research has been critiqued on methodological grounds but its core finding — that modern translations systematically differ from the KJV in ways that diminish the deity of Christ, the atonement by blood, and the physical resurrection — has not been overturned. David Otis Fuller's anthology <em>Which Bible?</em> (5th ed., 1975) collects sixteen scholarly essays by textual scholars including Burgon, Hills, Nolan, Pickering, and others making the cumulative case for the Received Text. Theodore Letis, in <em>The Ecclesiastical Text</em> (1997), argues from a historical-theological perspective that the Reformation church's acceptance of the Received Text as the providentially preserved text of the New Testament constitutes an ecclesial decision that cannot be overturned by 19th-century text-critical methodology without abandoning the Reformation principle of Scripture's perspicuity and preservation.</div>
 </div>
 <!-- /GODMODE_EXPANSION_{num} -->
+
+<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:14px 18px;margin:10px 0">
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);font-weight:700;margin-bottom:6px">Case Study</div>
+  <div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:4px">The LXX <em>proselytos</em> and KJV &#8220;Stranger&#8221;: How Translation Choices Shaped the Misreading of Passover Eligibility</div>
+  <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px">Source: Exodus 12:48&#8211;49 (LXX, KJV); Numbers 9:14; Ruth 1:16; Matthew 23:15; Acts 2:10; Romans 2:25&#8211;29 (KJV); Greek: <em>proselytos</em>, <em>paroikos</em>, <em>xenos</em>, <em>allotrios</em></div>
+  <div style="font-size:14px;color:var(--text2);line-height:1.6">
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px">The Septuagint (LXX) translates the Hebrew <em>ger</em> in Exodus 12:48 as <em>proselytos</em> (&#960;&#961;&#959;&#963;&#942;&#955;&#965;&#964;&#959;&#962;). The English word &#8220;proselyte&#8221; carries a post-biblical Christian and rabbinic meaning (&#8220;Gentile convert to Judaism&#8221;) that it does not carry in the LXX or the first century. Reading &#8220;proselyte&#8221; anachronistically as &#8220;Gentile convert&#8221; drives the error of treating every Diaspora Israelite as a non-Israelite who joined Israel. Translation context analysis recovers the first-century meaning.</p>
+<div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);border-radius:6px;padding:10px 14px;margin:8px 0 12px;font-size:13px;color:var(--text2);line-height:1.75">
+<strong style="color:var(--accent)">LXX Translation of Hebrew Stranger Terms:</strong><br><br>
+&#8226; <strong><em>ger</em> &#8594; <em>proselytos</em>:</strong> The LXX typically renders <em>ger</em> (covenant sojourner) as <em>proselytos</em>. This Greek word means &#8220;one who has come toward&#8221; (from <em>prosercho&#772;mai</em>) &#8212; a returnee or one who draws near to the community. It does not specify ethnic origin; it specifies relational movement toward the covenant community. John Nolland (&#8220;Uncircumcised Proselytes?,&#8221; <em>Journal for the Study of Judaism</em>, 12.2, 1981, pp.&#160;173&#8211;194): &#8220;The LXX <em>proselytos</em> in Exodus 12:48 does not denote an ethnic Gentile who has converted to Judaism; it denotes the <em>ger</em> &#8212; the person who has drawn near to the covenant community, whatever their origin.&#8221;<br><br>
+&#8226; <strong><em>nokri</em> &#8594; <em>allotrios</em>:</strong> The LXX renders <em>nokri</em> (ethnic foreigner) as <em>allotrios</em> (&#8220;belonging to another&#8221;) &#8212; the genuinely alien person. This is the term used for exclusion (Exod 12:43 LXX: no <em>allotrios</em> shall eat of the passover). The distinction between <em>proselytos</em> (included covenant sojourner) and <em>allotrios</em> (excluded foreigner) is precisely maintained in the LXX &#8212; but the KJV renders both as &#8220;stranger.&#8221;<br><br>
+&#8226; <strong><em>toshav</em> &#8594; <em>paroikos</em>:</strong> The LXX renders <em>toshav</em> (temporary resident) as <em>paroikos</em> (sojourner). Ephesians 2:19 uses <em>paroikoi</em> to describe scattered northern-kingdom Israelites: &#8220;ye are no more strangers and foreigners [<em>xenoi kai paroikoi</em>]&#8221; &#8212; the same legal category as the <em>toshav</em>-Israelite of Exodus 12:45 who is outside the covenant feast, being restored to full citizenship.
+</div>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">&#8220;Proselyte&#8221; in Acts 2:10 &#8212; Returning Diaspora Israelites, Not Gentile Converts:</strong> Acts 2:10 lists among those at Pentecost &#8220;strangers of Rome, Jews and proselytes.&#8221; In the first century, <em>proselytoi</em> at Jerusalem pilgrim festivals are Diaspora Israelites who had been assimilated into the nations but returned for the feast &#8212; the <em>gerim</em> fulfilling Deuteronomy 16:16. Shaye J.D. Cohen (<em>The Beginnings of Jewishness</em>, University of California Press, 1999, pp.&#160;140&#8211;162): &#8220;The term <em>proselyte</em> in the Second Temple period encompasses a wide range of individuals who attached themselves to the Jewish community, including diaspora Jews who had lost practice &#8212; not only ethnic non-Jews who formally converted.&#8221; Their presence at Pentecost fulfils the Deuteronomy 16:16 pilgrimage obligation; their identity is Israelite by blood, whatever their degree of assimilation.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0 0 10px"><strong style="color:var(--text)">Matthew 23:15 &#8212; Pharisees Making &#8220;Proselytes&#8221; Among Scattered Israelites:</strong> &#8220;Woe unto you, scribes and Pharisees, hypocrites! for ye compass sea and land to make one proselyte.&#8221; The Pharisees travel across the Mediterranean to make one proselyte. If the proselytes were ethnic Gentiles, the vast travel expense for so few converts would be remarkable only for inefficiency. The target of Pharisaic outreach is the Diaspora Israelite community &#8212; scattered northern-kingdom Israelites and assimilated Jews who could be brought back under the Pharisaic interpretation of Torah. The Pharisees&#8217; concern (Galatians 6:13; Isaiah 56:10&#8211;11; Micah 3) is not the salvation of ethnic nations but the re-attachment of scattered Israelites to their own sacrificial system. Paul&#8217;s counter-mission (Acts 15:1; Gal 5:2&#8211;6) is to the same Diaspora Israelite population, teaching Christ as the fulfillment of the passover-circumcision system rather than its perpetuation.</p>
+<p style="font-size:13px;color:var(--text2);line-height:1.8;margin:0"><strong style="color:var(--text)">KJV &#8220;Stranger&#8221; as a Translation Problem:</strong> The KJV renders five distinct Greek and Hebrew terms as &#8220;stranger&#8221;: <em>ger</em>, <em>nokri</em>, <em>toshav</em>, <em>xenos</em>, and <em>paroikos</em>. The flattening erases a legal taxonomy that determines who is included and excluded from the passover, from the covenant meal, from the release cycles, and from the pilgrimage obligation. Translation context analysis recovers the taxonomy. F.F. Bruce (<em>The Acts of the Apostles: The Greek Text with Introduction and Commentary</em>, Eerdmans, 3rd ed., 1990, p.&#160;116): &#8220;The distinction between <em>paroikoi</em> (sojourners) and <em>xenoi</em> (foreigners) in Ephesians 2:19 reflects the precise legal categories of the Septuagint&#8217;s rendering of the Hebrew stranger terms &#8212; a distinction the English &#8216;strangers and foreigners&#8217; preserves only approximately.&#8221;</p>
+  </div>
+  <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--text2)"><strong style="color:var(--green)">How Translation Context Applies:</strong> The LXX&#8217;s translation of <em>ger</em> as <em>proselytos</em> and <em>nokri</em> as <em>allotrios</em> preserves a legal distinction that the KJV&#8217;s uniform &#8220;stranger&#8221; erases. Translation context analysis recovers the original legal taxonomy: <em>proselytos</em> is the covenant returnee (scattered Israelite restored), not an ethnic Gentile convert; <em>allotrios</em> is the ethnic foreigner excluded from the passover. The same distinction applies to &#8220;proselyte&#8221; in Acts 2:10 and Matthew 23:15 &#8212; first-century <em>proselytoi</em> at Jerusalem pilgrim festivals are Diaspora Israelites returning to fulfil their Deuteronomy 16:16 obligation, not Gentile converts entering a foreign religion.</div>
+</div>
 </div></div>
 
 <div class="ctx-card" id="ctx-27">
@@ -15130,8 +15392,704 @@ window.TTS = (function() {
 
 </script>
 
+
+<!-- ── REAL TTS ENGINE + SEARCH UI ── -->
+<script>
+/* ═══════════════════════════════════════════════════════
+   TTS ENGINE — Brian (StreamElements UK Male) + WSA fallback
+   Resume tracks audio position; generation-safe callbacks
+═══════════════════════════════════════════════════════ */
+window.TTS = (function(){
+  'use strict';
+  let activePlayBtn=null, activeBar=null, isPaused=false;
+  let currentBrianAudio=null, currentBrianQueue=[];
+  let ttsGen=0;
+
+  /* ── Text normaliser ── */
+  function cleanText(raw){
+    return raw
+      .replace(/[Ͱ-Ͽἀ-῿]+/g,'')
+      .replace(/[֐-׿]+/g,'')
+      .replace(/[̀-ͯ]/g,'')
+      .replace(/[āĀ]/g,'a').replace(/[ēĒ]/g,'e').replace(/[īĪ]/g,'i')
+      .replace(/[ōŌ]/g,'o').replace(/[ūŪ]/g,'u')
+      .replace(/[çÇ]/g,'s').replace(/[ṭ]/g,'t').replace(/[ḥ]/g,'h')
+      .replace(/[šŠ]/g,'sh').replace(/[ẓ]/g,'z').replace(/[ḏ]/g,'d')
+      .replace(/[▶⏸■🔈🔊▼▲]/g,'')
+      .replace(/&amp;/g,'and').replace(/&lt;/g,'less than').replace(/&gt;/g,'greater than')
+      .replace(/&nbsp;/g,' ').replace(/&[a-z]+;/g,'')
+      .replace(/https?:\/\/[^\s]+/g,'')
+      .replace(/\[.*?\]/g,'')
+      .replace(/\(cf\.\s*/gi,'see ').replace(/\(ibid\.\)/gi,'same source')
+      .replace(/e\.g\./gi,'for example').replace(/i\.e\./gi,'that is')
+      .replace(/vs?\./gi,'versus').replace(/ca\./gi,'around').replace(/pp?\./gi,'page')
+      .replace(/esp\./gi,'especially').replace(/lit\./gi,'literally')
+      .replace(/([A-Z])\.([A-Z])\./g,'$1 $2')
+      .replace(/(\w)--(\w)/g,'$1, $2').replace(/(\w)—(\w)/g,'$1, $2')
+      .replace(/(\w)–(\w)/g,'$1 to $2')
+      .replace(/\s*[|]\s*/g,'. ')
+      .replace(/
+{2,}/g,'. ').replace(/
+/g,' ')
+      .replace(/ +([.!?,;:])/g,'$1')
+      .replace(/([.!?])\s*/g,'$1 ')
+      .replace(/ {2,}/g,' ')
+      .trim();
+  }
+
+  /* ── Text extraction ── */
+  function getTextOf(el){
+    const clone=el.cloneNode(true);
+    clone.querySelectorAll('img,canvas,svg,picture,video,audio,.audio-bar,.ab-mini,.ab-ham,.ab-stop-btn,.ab-page-bar,button,script,style,nav,.ham-panel,.dl-modal,.cat-tabs,.kjv-subtab-bar,.sub-tab-row,.tab-row,[aria-hidden="true"]').forEach(x=>x.remove());
+    const raw=(clone.innerText||clone.textContent||'').replace(/\s{3,}/g,'
+
+').trim();
+    return cleanText(raw);
+  }
+
+  /* ── WSA: male UK voice preference ── */
+  (function warmVoices(){
+    if(!window.speechSynthesis)return;
+    const v=speechSynthesis.getVoices();
+    if(!v.length)speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};
+  })();
+
+  const MALE_UK_PREF=['Google UK English Male','Microsoft Ryan Online (Natural)','Microsoft George Online (Natural)','Microsoft George','Daniel','Arthur','Oliver','Harry','James','Microsoft David','Microsoft Mark'];
+
+  function getBestMaleVoice(){
+    const voices=window.speechSynthesis?window.speechSynthesis.getVoices():[];
+    for(const n of MALE_UK_PREF){const v=voices.find(x=>x.name===n);if(v)return v;}
+    const gb=voices.filter(x=>x.lang==='en-GB'||x.lang.startsWith('en-GB'));
+    const gbM=gb.find(x=>/ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name));
+    if(gbM)return gbM;
+    if(gb.length)return gb[0];
+    return voices.find(x=>/david|mark|ryan|george|daniel|arthur|oliver|harry|james|male/i.test(x.name))||null;
+  }
+
+  function speakWSA(text,myGen,onEnd){
+    const synth=window.speechSynthesis;
+    if(!synth||ttsGen!==myGen){if(ttsGen===myGen)onEnd();return;}
+    if(synth.speaking||synth.pending)synth.cancel();
+    const MAX=460;
+    const sentences=text.replace(/([.!?])\s+/g,'$1
+').split('
+').map(s=>s.trim()).filter(Boolean);
+    const chunks=[];let buf='';
+    for(const s of sentences){
+      const c=(buf?buf+' ':'')+s;
+      if(c.length>MAX&&buf){chunks.push(buf);buf=s;}else buf=c;
+    }
+    if(buf)chunks.push(buf);
+    if(!chunks.length){if(ttsGen===myGen)onEnd();return;}
+    let idx=0;
+    const voice=getBestMaleVoice();
+    function next(){
+      if(ttsGen!==myGen)return;
+      if(idx>=chunks.length){onEnd();return;}
+      const utt=new SpeechSynthesisUtterance(chunks[idx++]);
+      utt.lang='en-GB';utt.rate=0.90;utt.pitch=0.88;utt.volume=1;
+      if(voice)utt.voice=voice;
+      utt.onend=next;
+      utt.onerror=function(){if(ttsGen===myGen&&idx<chunks.length)next();else if(ttsGen===myGen)onEnd();};
+      synth.speak(utt);
+    }
+    if(synth.getVoices().length>0){next();}
+    else{
+      let done=false;
+      function go(){if(done||ttsGen!==myGen)return;done=true;synth.onvoiceschanged=null;clearInterval(poll);next();}
+      synth.onvoiceschanged=go;
+      const poll=setInterval(function(){if(synth.getVoices().length>0)go();},80);
+      setTimeout(function(){clearInterval(poll);if(!done&&ttsGen===myGen){done=true;next();}},3000);
+    }
+  }
+
+  /* ── Brian (StreamElements UK Male Amazon Polly) ── */
+  const BRIAN_BASE='https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=';
+  const BRIAN_MAX=190;
+
+  function chunkText(text,maxLen){
+    const sentences=text.replace(/([.!?])\s+/g,'$1
+').split('
+').map(s=>s.trim()).filter(Boolean);
+    const chunks=[];let buf='';
+    for(const s of sentences){
+      const candidate=(buf?buf+' ':'')+s;
+      if(candidate.length<=maxLen){buf=candidate;}
+      else{
+        if(buf)chunks.push(buf);
+        if(s.length>maxLen){
+          const parts=s.split(/(?<=[,;])\s+/);
+          let sub='';
+          for(const p of parts){
+            const c2=(sub?sub+' ':'')+p;
+            if(c2.length<=maxLen){sub=c2;}
+            else{if(sub)chunks.push(sub);sub=p;}
+          }
+          buf=sub;
+        }else{buf=s;}
+      }
+    }
+    if(buf)chunks.push(buf);
+    return chunks;
+  }
+
+  function speakBrian(text,myGen,onEnd){
+    if(ttsGen!==myGen)return;
+    const chunks=chunkText(text,BRIAN_MAX);
+    if(!chunks.length){if(ttsGen===myGen)onEnd();return;}
+    let idx=0;
+    function playOne(){
+      if(ttsGen!==myGen)return;
+      if(idx>=chunks.length){onEnd();return;}
+      const chunk=chunks[idx++];
+      const audio=new Audio(BRIAN_BASE+encodeURIComponent(chunk));
+      audio.preload='auto';
+      currentBrianAudio=audio;currentBrianQueue=[audio];
+      let done=false;
+      function next(){if(done)return;done=true;if(ttsGen!==myGen)return;currentBrianAudio=null;currentBrianQueue=[];playOne();}
+      function fail(){if(done)return;done=true;if(ttsGen!==myGen)return;currentBrianAudio=null;currentBrianQueue=[];speakWSA(chunks.slice(idx-1).join(' '),myGen,onEnd);}
+      audio.onended=next;audio.onerror=fail;
+      const p=audio.play();if(p&&p.catch)p.catch(fail);
+    }
+    playOne();
+  }
+
+  /* ── UI helpers ── */
+  function stopUI(){
+    if(activePlayBtn){
+      if(activePlayBtn.classList.contains('ab-play-btn'))activePlayBtn.innerHTML='▶ Read';
+      else if(activePlayBtn.classList.contains('ab-page-btn'))activePlayBtn.innerHTML='▶ Read Page';
+      else activePlayBtn.textContent='🔈';
+      activePlayBtn.classList.remove('ab-active','playing');
+    }
+    if(activeBar){
+      const w=activeBar.querySelector('.ab-waves');const s=activeBar.querySelector('.ab-stop-btn');
+      if(w)w.classList.remove('ab-vis');if(s)s.classList.remove('ab-vis');
+    }
+    activePlayBtn=null;activeBar=null;
+    const gb=document.getElementById('tts-btn');
+    if(gb){gb.textContent='🔈';gb.classList.remove('playing');}
+  }
+
+  function stopAll(){
+    ttsGen++;
+    if(currentBrianAudio){try{currentBrianAudio.pause();}catch(e){}currentBrianAudio=null;}
+    currentBrianQueue.forEach(a=>{try{a.pause();}catch(e){}});currentBrianQueue=[];
+    if(window.speechSynthesis)speechSynthesis.cancel();
+    isPaused=false;stopUI();
+  }
+
+  function startUI(btn,bar){
+    stopAll();
+    activePlayBtn=btn;activeBar=bar;
+    if(btn){
+      if(btn.classList.contains('ab-play-btn')||btn.classList.contains('ab-page-btn'))btn.innerHTML='⏸ Pause';
+      else{btn.textContent='⏸';btn.classList.add('playing');}
+      btn.classList.add('ab-active');
+    }
+    if(bar){
+      const w=bar.querySelector('.ab-waves');const s=bar.querySelector('.ab-stop-btn');
+      if(w)w.classList.add('ab-vis');if(s)s.classList.add('ab-vis');
+    }
+  }
+
+  /* ── Main speak() ── */
+  function speak(text,btn,bar){
+    if(!text||!text.trim())return;
+    // Same button + paused → RESUME
+    if(activePlayBtn===btn&&isPaused){
+      if(currentBrianAudio)currentBrianAudio.play().catch(function(){});
+      else if(window.speechSynthesis&&speechSynthesis.paused)speechSynthesis.resume();
+      isPaused=false;
+      if(btn){
+        if(btn.classList.contains('ab-play-btn')||btn.classList.contains('ab-page-btn'))btn.innerHTML='⏸ Pause';
+        else{btn.textContent='⏸';btn.classList.add('playing');}
+      }
+      if(activeBar){const w=activeBar.querySelector('.ab-waves');if(w)w.classList.add('ab-vis');}
+      return;
+    }
+    // Same button + playing → PAUSE
+    if(activePlayBtn===btn&&!isPaused){
+      if(currentBrianAudio)currentBrianAudio.pause();
+      else if(window.speechSynthesis)speechSynthesis.pause();
+      isPaused=true;
+      if(btn){
+        if(btn.classList.contains('ab-play-btn')||btn.classList.contains('ab-page-btn'))btn.innerHTML='▶ Resume';
+        else btn.textContent='▶';
+      }
+      if(activeBar){const w=activeBar.querySelector('.ab-waves');if(w)w.classList.remove('ab-vis');}
+      return;
+    }
+    // New button → start fresh
+    startUI(btn,bar);
+    const myGen=ttsGen;
+    const onEnd=()=>{if(ttsGen!==myGen)return;isPaused=false;currentBrianAudio=null;currentBrianQueue=[];stopUI();};
+    try{speakBrian(text,myGen,onEnd);}catch(e){speakWSA(text,myGen,onEnd);}
+  }
+
+  /* ── Button factories ── */
+  function makeBar(el,lbl){
+    const bar=document.createElement('div');bar.className='audio-bar';
+    bar.innerHTML='<button class="ab-play-btn">▶ Read</button><div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div><div class="ab-lbl">'+(lbl||'').replace(/[<>]/g,'').slice(0,52)+'</div><button class="ab-stop-btn" title="Stop">■</button>';
+    const pb=bar.querySelector('.ab-play-btn'),sb=bar.querySelector('.ab-stop-btn');
+    let cache=null;
+    pb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();if(!cache)cache=getTextOf(el);speak(cache,pb,bar);});
+    sb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();stopAll();});
+    return bar;
+  }
+
+  function makeGroupBar(container,label){
+    const bar=document.createElement('div');bar.className='audio-bar ab-top';bar.style.cssText='border-radius:6px 6px 0 0;margin:0;';
+    bar.innerHTML='<button class="ab-play-btn" style="font-weight:600">▶ Play All</button><div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div><div class="ab-lbl">'+(label||'').replace(/[<>]/g,'').slice(0,56)+'</div><button class="ab-stop-btn" title="Stop">■</button>';
+    const pb=bar.querySelector('.ab-play-btn'),sb=bar.querySelector('.ab-stop-btn');
+    let cache=null;
+    pb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();if(!cache)cache=getTextOf(container);speak(cache,pb,bar);});
+    sb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();stopAll();});
+    return bar;
+  }
+
+  function makePageBar(el,label){
+    const bar=document.createElement('div');bar.className='audio-bar ab-page-bar';
+    bar.innerHTML='<button class="ab-page-btn">▶ Read Page</button><div class="ab-waves"><span></span><span></span><span></span><span></span><span></span></div><div class="ab-lbl">'+(label||'Read full page').replace(/[<>]/g,'').slice(0,60)+'</div><button class="ab-stop-btn" title="Stop">■</button>';
+    const pb=bar.querySelector('.ab-page-btn'),sb=bar.querySelector('.ab-stop-btn');
+    let cache=null;
+    pb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();if(!cache)cache=getTextOf(el);speak(cache,pb,bar);});
+    sb.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();stopAll();});
+    return bar;
+  }
+
+  function makeMini(textOrFn){
+    const btn=document.createElement('button');btn.className='ab-mini';btn.textContent='🔈';btn.title='Read aloud';
+    btn.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();const text=typeof textOrFn==='function'?textOrFn():textOrFn;speak(text,btn,null);});
+    return btn;
+  }
+
+  function makeHam(text){
+    const btn=document.createElement('button');btn.className='ab-ham';btn.textContent='🔈';btn.title='Read';
+    btn.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();speak(text,btn,null);});
+    return btn;
+  }
+
+  /* ── Injection ── */
+  function SKIP(el){return el.closest('#topnav,.ham-panel,.dl-modal,.audio-bar,.ab-page-bar,#tts-btn,#tts-tooltip,#search-modal');}
+
+  function injectEl(root){
+    root=(root||document);
+
+    /* Page-level Read Page bar */
+    root.querySelectorAll('.sub-section,.sub-panel,.cat-panel,.content-panel,.kjv-panel').forEach(panel=>{
+      if(panel.dataset.abPage)return;panel.dataset.abPage='1';
+      const h=panel.querySelector('h2,h3,h4,.section-label,.ctx-section-label');
+      const lbl=h?(h.innerText||'').trim().replace(/🔈/g,'').slice(0,60):'Read full page';
+      panel.insertBefore(makePageBar(panel,lbl),panel.firstChild);
+    });
+
+    /* ctx-card: mini on header + Play All on body */
+    root.querySelectorAll('.ctx-card').forEach(card=>{
+      if(card.dataset.ab)return;card.dataset.ab='1';
+      const header=card.querySelector('.ctx-card-header');
+      const chevron=card.querySelector('.ctx-chevron');
+      const body=card.querySelector('.ctx-body');
+      if(header&&!header.querySelector('.ab-mini')){
+        const mini=makeMini(()=>getTextOf(card));
+        mini.title='Read entire card';
+        mini.style.cssText='font-size:14px;opacity:.45;margin-left:auto;margin-right:8px;flex-shrink:0';
+        if(chevron)header.insertBefore(mini,chevron);else header.appendChild(mini);
+      }
+      if(body&&!body.querySelector(':scope > .audio-bar')){
+        const h4=card.querySelector('h4');
+        const lbl=h4?(h4.innerText||'').trim():'Read all subsections';
+        body.insertBefore(makeGroupBar(body,lbl),body.firstChild);
+      }
+    });
+
+    /* ctx-section */
+    root.querySelectorAll('.ctx-section').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;el.dataset.ab='1';
+      const lbl=(el.querySelector('.ctx-section-label,.ctx-section-title')||{}).innerText||'Section';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    /* card-sm */
+    root.querySelectorAll('.card-sm,.scholar-card,.lexicon-card').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;el.dataset.ab='1';
+      const lbl=(el.querySelector('strong,h4,.card-title')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    /* Green case study boxes */
+    root.querySelectorAll('div[style*="rgba(63,185,80"]').forEach(el=>{
+      if(el.dataset.ab||SKIP(el)||el.classList.contains('audio-bar'))return;
+      el.dataset.ab='1';
+      const lbl=(el.querySelector('[style*="font-size:15px"],[style*="font-weight:700"]')||{}).innerText||'Case Study';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    /* Argument cards */
+    root.querySelectorAll('.argument-card').forEach(el=>{
+      if(el.dataset.ab||SKIP(el))return;el.dataset.ab='1';
+      const lbl=(el.querySelector('h3,h4,strong')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    /* Inline styled divs in ctx-body (vb blocks, highlights) */
+    root.querySelectorAll('.ctx-body > div[style],.ctx-section > div[style]').forEach(el=>{
+      if(el.dataset.ab||SKIP(el)||el.classList.contains('audio-bar')||el.classList.contains('ctx-section'))return;
+      if(el.querySelector('.ctx-section'))return;
+      el.dataset.ab='1';
+      const lbl=(el.querySelector('[style*="uppercase"],[style*="font-weight:7"]')||{}).innerText||'';
+      el.appendChild(makeBar(el,lbl));
+    });
+
+    /* h3/h4 headings get inline mini 🔈 */
+    root.querySelectorAll('h3,h4').forEach(h=>{
+      if(h.dataset.ab||SKIP(h)||h.querySelector('.ab-mini'))return;h.dataset.ab='1';
+      const mini=makeMini(function(){
+        const clone=h.cloneNode(true);clone.querySelectorAll('.ab-mini,button').forEach(x=>x.remove());
+        let text=(clone.innerText||'')+'. ';
+        let sib=h.nextElementSibling;
+        while(sib){
+          const tag=sib.tagName||'';
+          if(/^H[1-6]$/.test(tag)&&parseInt(tag[1])<=parseInt(h.tagName[1]))break;
+          if(!sib.classList.contains('audio-bar')&&!sib.classList.contains('ab-page-bar')){
+            const c=sib.cloneNode(true);c.querySelectorAll('img,canvas,svg,.audio-bar,.ab-mini,button,script').forEach(x=>x.remove());
+            text+=(c.innerText||c.textContent||'')+' ';
+          }
+          sib=sib.nextElementSibling;
+        }
+        return cleanText(text.replace(/\s{3,}/g,' ').trim());
+      });
+      mini.style.marginLeft='6px';
+      h.appendChild(mini);
+    });
+
+    /* Hamburger menu items */
+    root.querySelectorAll('.ham-item,.ham-link,.nav-item').forEach(el=>{
+      if(el.dataset.ab||el.querySelector('.ab-ham'))return;el.dataset.ab='1';
+      const text=(el.innerText||el.textContent||'').trim();
+      if(text.length<3)return;
+      el.appendChild(makeHam(text));
+    });
+
+    /* Global 🔈 floating button */
+    const gb=document.getElementById('tts-btn');
+    if(gb&&!gb.dataset.ab){
+      gb.dataset.ab='1';
+      gb.addEventListener('click',function(){
+        if(isPaused){speak('',gb,null);return;}
+        const activePage=document.querySelector('.page:not([style*="none"]):not([hidden]),.page.active');
+        if(activePage){
+          const text=getTextOf(activePage);
+          speak(text,gb,null);
+        }
+      });
+    }
+  }
+
+  function inject(){injectEl(document);}
+
+  document.addEventListener('DOMContentLoaded',()=>{inject();});
+  if(document.readyState!=='loading')setTimeout(()=>{inject();},80);
+
+  return {stopAll,inject,injectEl};
+})();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   SITE SEARCH ENGINE — indexes every element on the page
+   Results: "Section › Topic — ...keyword highlighted..."
+═══════════════════════════════════════════════════════ */
+window.SearchUI = (function(){
+  'use strict';
+
+  const PAGE_LABELS={
+    'home':'Home','context-types':'Context Types','etymology':'Etymology',
+    'lexical':'Lexical','scholars':'Scholars','bible-defines':'Bible Defines',
+    'word-errors':'Word Errors','intertextuality':'Intertextuality',
+    'special':'Special Topics','glossary':'Glossary','bibliography':'Bibliography',
+    'kjv-authority':'KJV Authority',
+  };
+  const SUB_LABELS={
+    'psych':'Psychology of Adaptation','epist':'Epistemological Consequences',
+    'multigeni':'Multi-Generational Interpretation','biblical-div':'Biblical Division & Covenant',
+    'presup':'Presupposition & Inference',
+  };
+
+  let idx=[];let built=false;let focusedIdx=-1;let lastQuery='';
+
+  function elText(el){
+    if(!el)return'';
+    const c=el.cloneNode(true);
+    c.querySelectorAll('.audio-bar,.ab-mini,.ab-ham,button,script,style').forEach(x=>x.remove());
+    return(c.innerText||c.textContent||'').replace(/\s+/g,' ').trim();
+  }
+  function firstText(el,sel){
+    if(!el)return'';const found=el.querySelector(sel);return found?elText(found):'';
+  }
+
+  function buildIndex(){
+    if(built)return;built=true;idx=[];
+    document.querySelectorAll('.page').forEach(page=>{
+      const pageId=page.id;
+      const pageLabel=PAGE_LABELS[pageId]||pageId;
+
+      page.querySelectorAll('.ctx-card').forEach(card=>{
+        const rawId=card.id||'';
+        const ctxNum=rawId.replace('ctx-','');
+        const catPanel=card.closest('.cat-panel');
+        const catId=catPanel?catPanel.id:'';
+        const cardLabel=firstText(card,'h4')||firstText(card,'.ctx-card-label');
+
+        card.querySelectorAll('.ctx-section').forEach(sec=>{
+          const secLabel=firstText(sec,'.ctx-section-label,.ctx-section-title');
+          const secText=elText(sec);
+          const path=[pageLabel,cardLabel,secLabel].filter(Boolean).join(' › ');
+          addEntry(secText,path,pageId,catId,'',ctxNum,'',cardLabel,secLabel,sec);
+          sec.querySelectorAll(':scope > div[style]').forEach(box=>{
+            const boxLabel=firstText(box,'[style*="uppercase"],[style*="UPPERCASE"]')||firstText(box,'[style*="font-weight:700"],[style*="font-weight: 700"]')||'';
+            const boxText=elText(box);
+            const bPath=[pageLabel,cardLabel,secLabel,boxLabel].filter(Boolean).join(' › ');
+            addEntry(boxText,bPath,pageId,catId,'',ctxNum,'',cardLabel,boxLabel||secLabel,box);
+          });
+        });
+
+        const body=card.querySelector('.ctx-body');
+        if(body){
+          body.querySelectorAll(':scope > div[style]').forEach(box=>{
+            if(box.classList.contains('ctx-section'))return;
+            const boxLabel=firstText(box,'[style*="uppercase"]')||firstText(box,'[style*="font-weight:700"]')||'';
+            const boxText=elText(box);
+            const bPath=[pageLabel,cardLabel,boxLabel].filter(Boolean).join(' › ');
+            addEntry(boxText,bPath,pageId,catId,'',ctxNum,'',cardLabel,boxLabel,box);
+          });
+        }
+      });
+
+      page.querySelectorAll('.sub-panel').forEach(panel=>{
+        const subRaw=panel.id||'';
+        const subId=subRaw.replace('sub-','');
+        const subLabel=SUB_LABELS[subId]||firstText(panel,'h3,h4')||subId;
+        panel.querySelectorAll('.ctx-section').forEach(sec=>{
+          const secLabel=firstText(sec,'.ctx-section-title,.ctx-section-label');
+          const secText=elText(sec);
+          const path=[pageLabel,subLabel,secLabel].filter(Boolean).join(' › ');
+          addEntry(secText,path,pageId,'',subId,'','',subLabel,secLabel,sec);
+          sec.querySelectorAll(':scope > div[style]').forEach(box=>{
+            const bLabel=firstText(box,'[style*="uppercase"],[style*="font-weight:700"]')||'';
+            const bText=elText(box);
+            const bPath=[pageLabel,subLabel,secLabel,bLabel].filter(Boolean).join(' › ');
+            addEntry(bText,bPath,pageId,'',subId,'','',subLabel,bLabel||secLabel,box);
+          });
+        });
+        panel.querySelectorAll(':scope > .argument-card').forEach(card=>{
+          const cardLabel2=firstText(card,'h3,h4');
+          const cardText=elText(card);
+          const path=[pageLabel,subLabel,cardLabel2].filter(Boolean).join(' › ');
+          addEntry(cardText,path,pageId,'',subId,'','',subLabel,cardLabel2,card);
+        });
+        /* Also index top-level styled divs (case studies) in sub-panels */
+        panel.querySelectorAll(':scope > div[style]').forEach(box=>{
+          const bLabel=firstText(box,'[style*="font-weight:700"],[style*="uppercase"]')||'';
+          const bText=elText(box);
+          if(bText.length<15)return;
+          const bPath=[pageLabel,subLabel,bLabel].filter(Boolean).join(' › ');
+          addEntry(bText,bPath,pageId,'',subId,'','',subLabel,bLabel||subLabel,box);
+        });
+      });
+
+      page.querySelectorAll('.kjv-panel').forEach(panel=>{
+        const kjvId=panel.id||'';
+        const kjvLabel=firstText(panel,'h3,h4,.kjv-title')||kjvId;
+        const text=elText(panel);
+        const path=[pageLabel,kjvLabel].filter(Boolean).join(' › ');
+        addEntry(text,path,pageId,'','','',kjvId,kjvLabel,'',panel);
+      });
+
+      page.querySelectorAll('.cat-panel').forEach(panel=>{
+        const catId=panel.id||'';
+        panel.querySelectorAll('.argument-card,.scholar-card,.lexicon-card,.card').forEach(card=>{
+          if(card.closest('.ctx-card'))return;
+          const cLabel=firstText(card,'h3,h4,strong,.card-title');
+          const cText=elText(card);
+          const path=[pageLabel,cLabel].filter(Boolean).join(' › ');
+          addEntry(cText,path,pageId,catId,'','','',cLabel,'',card);
+        });
+        /* Top-level paragraphs/divs in cat-panel not in cards */
+        panel.querySelectorAll(':scope > p,:scope > div[style]').forEach(el=>{
+          if(el.closest('.ctx-card,.argument-card,.scholar-card'))return;
+          const text=elText(el);if(text.length<20)return;
+          addEntry(text,pageLabel,pageId,catId,'','','','',pageLabel,el);
+        });
+      });
+
+      page.querySelectorAll('.glos-card,.glos-entry').forEach(el=>{
+        const term=firstText(el,'strong,h4,.glos-term,.term')||elText(el).slice(0,50);
+        const text=elText(el);
+        addEntry(text,'Glossary › '+term,pageId,'','','','',term,'Glossary',el);
+      });
+
+      page.querySelectorAll('.bib-entry').forEach(el=>{
+        const text=elText(el);const title=text.slice(0,70);
+        addEntry(text,'Bibliography',pageId,'','','','',title,'Bibliography',el);
+      });
+
+      page.querySelectorAll('.scholar-cite').forEach(el=>{
+        if(el.closest('.ctx-card,.argument-card,.sub-panel,.cat-panel'))return;
+        const name=firstText(el,'strong')||'Scholar';
+        const text=elText(el);
+        addEntry(text,pageLabel+' › Scholars',pageId,'','','','',name,'Scholar',el);
+      });
+    });
+    console.log('[Search] indexed',idx.length,'entries');
+  }
+
+  function addEntry(text,path,pageId,catId,subId,ctxId,kjvId,title,label,el){
+    if(!text||text.length<15)return;
+    idx.push({text,path,pageId,catId,subId:subId||'',ctxId:ctxId||'',kjvId:kjvId||'',title:title||'',label:label||'',el});
+  }
+
+  function kwic(text,query,maxLen){
+    if(!query)return text.slice(0,160)+'…';
+    const lo=text.toLowerCase();
+    const qi=lo.indexOf(query.toLowerCase());
+    if(qi===-1)return text.slice(0,160)+'…';
+    const pad=80;
+    const start=Math.max(0,qi-pad);const end=Math.min(text.length,qi+query.length+pad);
+    let snip=(start>0?'…':'')+text.slice(start,end)+(end<text.length?'…':'');
+    const re=new RegExp('('+escRe(query)+')','gi');
+    snip=snip.replace(re,'<mark>$1</mark>');
+    return snip;
+  }
+
+  function escRe(s){return s.replace(/[.*+?^${}()|[\]\]/g,'\$&');}
+  function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function search(query){
+    if(!query||query.length<2)return[];
+    const q=query.toLowerCase().trim();
+    const words=q.split(/\s+/);
+    const scored=[];
+    idx.forEach((entry,i)=>{
+      const lo=entry.text.toLowerCase();
+      const titleLo=(entry.title+' '+entry.path).toLowerCase();
+      const allMatch=words.every(w=>lo.includes(w)||titleLo.includes(w));
+      if(!allMatch)return;
+      let score=0;
+      if(titleLo.includes(q))score+=100;
+      words.forEach(w=>{if(titleLo.includes(w))score+=10;if(lo.includes(w))score+=1;});
+      if(lo.includes(q))score+=30;
+      scored.push({entry,score});
+    });
+    scored.sort((a,b)=>b.score-a.score);
+    return scored.slice(0,80);
+  }
+
+  function navigateTo(entry){
+    const fakBtn={classList:{add:function(){},remove:function(){}}};
+    if(typeof showPage==='function')showPage(entry.pageId,fakBtn);
+    if(entry.catId&&typeof switchCat==='function')setTimeout(()=>switchCat(entry.catId),60);
+    if(entry.subId&&typeof switchSub==='function')setTimeout(()=>switchSub(entry.subId),60);
+    if(entry.kjvId&&typeof switchKJV==='function')setTimeout(()=>switchKJV(entry.kjvId),60);
+    if(entry.ctxId){
+      setTimeout(()=>{
+        const body=document.getElementById('body-'+entry.ctxId);
+        const chev=document.getElementById('chev-'+entry.ctxId);
+        if(body&&!body.classList.contains('open')){
+          body.classList.add('open');
+          if(chev)chev.classList.add('open');
+          const hdr=body.previousElementSibling;
+          if(hdr)hdr.classList.add('open');
+        }
+      },100);
+    }
+    setTimeout(()=>{
+      const el=entry.el;if(!el)return;
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.classList.add('search-found-flash');
+      setTimeout(()=>el.classList.remove('search-found-flash'),2000);
+    },220);
+  }
+
+  function render(results,query){
+    const container=document.getElementById('search-results');
+    const noRes=document.getElementById('search-no-results');
+    const stats=document.getElementById('search-stats');
+    container.innerHTML='';focusedIdx=-1;
+    if(!query||query.length<2){stats.textContent='Type at least 2 characters to search…';noRes.style.display='none';return;}
+    if(!results.length){stats.textContent='No results for "'+query+'"';noRes.style.display='block';return;}
+    noRes.style.display='none';
+    stats.textContent=results.length+(results.length===80?' (top 80)':'')+' result'+(results.length===1?'':'s')+' for "'+query+'"';
+    results.forEach((r,i)=>{
+      const entry=r.entry;
+      const div=document.createElement('div');div.className='sr-item';div.setAttribute('role','option');div.setAttribute('tabindex','-1');
+      const snip=kwic(entry.text,query,90);
+      div.innerHTML='<div class="sr-path">'+escHtml(entry.path)+'</div>'+'<div class="sr-title">'+escHtml((entry.title||entry.label||'').slice(0,80))+'</div>'+'<div class="sr-snippet">'+snip+'</div>';
+      div.addEventListener('click',()=>{close();navigateTo(entry);});
+      div.addEventListener('mouseenter',()=>setFocus(i));
+      container.appendChild(div);
+    });
+  }
+
+  function setFocus(i){
+    const items=document.querySelectorAll('#search-results .sr-item');
+    items.forEach(it=>it.classList.remove('focused'));focusedIdx=i;
+    if(i>=0&&i<items.length){items[i].classList.add('focused');items[i].scrollIntoView({block:'nearest'});}
+  }
+
+  let debTimer=null;
+  function onInput(){
+    const q=document.getElementById('search-input').value.trim();lastQuery=q;
+    clearTimeout(debTimer);
+    debTimer=setTimeout(()=>{buildIndex();const results=search(q);render(results,q);},120);
+  }
+
+  function open(){
+    buildIndex();
+    const modal=document.getElementById('search-modal');modal.classList.add('open');
+    const inp=document.getElementById('search-input');if(inp){inp.focus();inp.select();}
+    if(lastQuery){const results=search(lastQuery);render(results,lastQuery);}
+  }
+
+  function close(){
+    document.getElementById('search-modal').classList.remove('open');
+    if(window.TTS)TTS.stopAll();
+  }
+
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='/')){e.preventDefault();open();return;}
+    const modal=document.getElementById('search-modal');
+    if(!modal||!modal.classList.contains('open'))return;
+    if(e.key==='Escape'){close();return;}
+    const items=document.querySelectorAll('#search-results .sr-item');if(!items.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();setFocus(Math.min(focusedIdx+1,items.length-1));}
+    else if(e.key==='ArrowUp'){e.preventDefault();setFocus(Math.max(focusedIdx-1,0));}
+    else if(e.key==='Enter'&&focusedIdx>=0){e.preventDefault();const entry=items[focusedIdx];if(entry)entry.click();}
+  });
+
+  function init(){
+    const inp=document.getElementById('search-input');
+    if(inp){
+      inp.addEventListener('input',onInput);
+      inp.addEventListener('keydown',function(e){
+        if(e.key==='Enter'){
+          const items=document.querySelectorAll('#search-results .sr-item');
+          if(focusedIdx>=0&&items[focusedIdx])items[focusedIdx].click();
+          else if(items[0])items[0].click();
+        }
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',init);
+  if(document.readyState!=='loading')setTimeout(init,50);
+
+  return{open,close,buildIndex};
+})();
+</script>
+
 <!-- ── GLOBAL TTS FLOAT BUTTON ── -->
-<button id="tts-btn" title="Read entire page aloud" aria-label="Read page aloud" style="position:fixed;bottom:28px;right:24px;z-index:9999;width:52px;height:52px;border-radius:50%;background:var(--bg2,#161b22);border:2px solid rgba(255,255,255,.2);color:#e6edf3;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.5);touch-action:none;user-select:none">🔈</button>
-<div id="tts-tooltip" style="position:fixed;bottom:88px;right:24px;z-index:10000;background:var(--bg2,#161b22);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2,#8b949e);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s">Brian is speaking…</div>
+<button id="tts-btn" title="Read entire page aloud" aria-label="Read page aloud">🔈</button>
+<div id="tts-tooltip">Brian is speaking…</div>
 </body>
 </html>
