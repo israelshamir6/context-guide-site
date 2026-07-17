@@ -14276,6 +14276,287 @@ function wordDoc(sections, docTitle) {
 
 </body></html>`;
 }
+
+// ── PDF GENERATOR ──────────────────────────────────────────────────────
+function generatePDF(sections, filename, docTitle) {
+  loadJsPDF(() => {
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const ml=18, mr=18, mt=22, mb=22, cw=W-ml-mr;
+    let y=mt;
+
+    const C={
+      gold:[218,165,32], dark:[13,17,23], navy:[26,58,92], steel:[44,95,138],
+      body:[35,35,35],  grey:[150,150,150], cream:[255,252,230], amber:[180,83,9],
+      lblGrey:[120,120,120]
+    };
+
+    function footer(){
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+      doc.setTextColor(...C.grey);
+      doc.text('Forms of Context in Textual Analysis — Comprehensive Scholarly Guide', ml, H-10);
+      doc.text(String(doc.internal.getNumberOfPages()), W-mr, H-10, {align:'right'});
+      doc.setTextColor(...C.body);
+    }
+    function np(){ footer(); doc.addPage(); y=mt; }
+    function chk(h){ if(y+h>H-mb) np(); }
+
+    // Cover
+    doc.setFillColor(...C.dark); doc.rect(0,0,W,H,'F');
+    doc.setDrawColor(...C.gold); doc.setLineWidth(0.5);
+    doc.line(ml,32,W-mr,32);
+    doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(...C.gold);
+    doc.text('FORMS OF CONTEXT IN TEXTUAL ANALYSIS',W/2,28,{align:'center'});
+    doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    const tls=doc.splitTextToSize(docTitle,cw-10);
+    let ty=50; tls.forEach(l=>{doc.text(l,W/2,ty,{align:'center'});ty+=11;});
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...C.grey);
+    doc.text('A Comprehensive Scholarly Guide',W/2,ty+8,{align:'center'});
+    doc.line(ml,H-32,W-mr,H-32);
+    doc.text('formsofcontext.com',W/2,H-22,{align:'center'});
+    doc.addPage(); y=mt; doc.setTextColor(...C.body);
+
+    // Render each section
+    for(const {title, body} of sections){
+      // Section heading bar
+      chk(20); if(y>mt+4) y+=6;
+      doc.setFillColor(...C.dark); doc.rect(ml-3,y-7,cw+6,13,'F');
+      doc.setFontSize(12.5); doc.setFont('helvetica','bold'); doc.setTextColor(...C.gold);
+      const hls=doc.splitTextToSize(title,cw-4);
+      doc.text(hls,ml,y); y+=hls.length*7+8; doc.setTextColor(...C.body);
+
+      // Process body text line by line
+      const lines=body.split('\n');
+      for(const raw of lines){
+        const l=raw.trim();
+        if(!l){ y+=1.5; continue; }
+
+        // Section label [IN BRACKETS]
+        if(/^\[.{3,60}\]$/.test(l)){
+          chk(10); y+=3;
+          doc.setDrawColor(210,210,210); doc.setLineWidth(0.3);
+          doc.line(ml,y-1,W-mr,y-1);
+          doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+          doc.setTextColor(...C.lblGrey);
+          doc.text(l.replace(/^\[|\]$/g,'').toUpperCase(),ml,y);
+          y+=5.5; doc.setTextColor(...C.body);
+          continue;
+        }
+
+        // Key quote "..."
+        if(l.startsWith('"') && l.length>10){
+          doc.setFontSize(9); doc.setFont('helvetica','italic'); doc.setTextColor(60,50,30);
+          const ls=doc.splitTextToSize(l,cw-10);
+          const bh=ls.length*5+10;
+          chk(bh);
+          doc.setFillColor(...C.cream); doc.rect(ml,y-4,cw,bh,'F');
+          doc.setFillColor(...C.amber); doc.rect(ml,y-4,2,bh,'F');
+          doc.text(ls,ml+5,y); y+=bh+3;
+          doc.setFont('helvetica','normal'); doc.setTextColor(...C.body);
+          continue;
+        }
+
+        // Attribution line starting with —
+        if(l.startsWith('—')){
+          doc.setFontSize(8.5); doc.setFont('helvetica','italic');
+          doc.setTextColor(100,100,100);
+          const ls=doc.splitTextToSize(l,cw-8);
+          chk(ls.length*5+2);
+          doc.text(ls,ml+6,y); y+=ls.length*5+3;
+          doc.setFont('helvetica','normal'); doc.setTextColor(...C.body);
+          continue;
+        }
+
+        // Case study lines
+        if(l.startsWith('Case Study')||l.startsWith('Source:')||l.startsWith('Analysis:')){
+          doc.setFontSize(9); doc.setFont('helvetica','normal');
+          doc.setTextColor(30,60,120);
+          const ls=doc.splitTextToSize(l,cw-8);
+          chk(ls.length*5+2);
+          doc.text(ls,ml+4,y); y+=ls.length*5+2;
+          doc.setTextColor(...C.body);
+          continue;
+        }
+
+        // Indented citation (scholarly source)
+        if(raw.startsWith('  ')&&(l.includes('(1')||l.includes('(2'))&&l.length>20){
+          doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+          doc.setTextColor(...C.navy);
+          const ls=doc.splitTextToSize(l,cw-8);
+          chk(ls.length*5+2);
+          doc.text(ls,ml+4,y); y+=ls.length*5+2;
+          doc.setFont('helvetica','normal'); doc.setTextColor(...C.body);
+          continue;
+        }
+
+        // Normal paragraph
+        doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...C.body);
+        const ls=doc.splitTextToSize(l,cw);
+        for(const line of ls){ chk(5); doc.text(line,ml,y); y+=5; }
+        y+=1;
+      }
+      // Section divider
+      chk(10); y+=4;
+      doc.setDrawColor(200,200,200); doc.setLineWidth(0.4);
+      doc.line(ml,y,W-mr,y); y+=7;
+    }
+    footer();
+    doc.save(filename+'.pdf');
+  });
+}
+
+// ── BLOB DOWNLOAD ──────────────────────────────────────────────────────
+function setProgress(id,msg){
+  const el=document.getElementById(id);
+  if(el){el.textContent=msg;el.classList.toggle('show',!!msg);}
+}
+function triggerBlob(content,filename,mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);
+}
+function dispatch(sections,baseFilename,docTitle,fmt,progId){
+  if(fmt==='pdf'){
+    generatePDF(sections,baseFilename,docTitle);
+    setProgress(progId,'✅ PDF generated — check your Downloads folder.');
+  } else if(fmt==='word'){
+    triggerBlob(wordDoc(sections,docTitle),baseFilename+'.doc','application/msword');
+    setProgress(progId,'✅ Word doc downloaded!');
+  } else {
+    triggerBlob(textDoc(sections),baseFilename+'.txt','text/plain');
+    setProgress(progId,'✅ Text file downloaded!');
+  }
+  setTimeout(()=>setProgress(progId,''),6000);
+}
+
+// ── GET SECTION DATA ───────────────────────────────────────────────────
+function getSectionData(id){
+  if(id==='context-types'){
+    // All 30 context types merged into one body
+    const bodies=CTX_ORDER.map(n=>{
+      const b=SITE_CONTENT.contextTypes[n];
+      return b ? b.text : '';
+    });
+    return {title:'All 30 Context Types',body:bodies.join('\n\n────────────────────────────────────────────────────────────────────────\n\n')};
+  }
+  const title=TAB_LABELS[id]||id;
+  const body=SITE_CONTENT.sections[id]||'(Content not found)';
+  return {title,body};
+}
+
+// ── DOWNLOAD ACTIONS ───────────────────────────────────────────────────
+function downloadAll(fmt){
+  setProgress('prog-all','⏳ Compiling complete guide...');
+  setTimeout(()=>{
+    const ALL_IDS=['home','context-types','etymology','lexical','scholars',
+                   'bible-defines','word-errors','intertextuality',
+                   'sub-psych','sub-epist','sub-multigeni','glossary','bibliography'];
+    const sections=[];
+    ALL_IDS.forEach(id=>{
+      const d=getSectionData(id);
+      if(d.body&&d.body.length>10) sections.push(d);
+    });
+    dispatch(sections,'Forms-of-Context-COMPLETE',
+             'Complete Guide — All Sections & All 30 Context Types',fmt,'prog-all');
+  },80);
+}
+
+function downloadAll30(fmt){
+  setProgress('prog-all30','⏳ Compiling all 30 context types...');
+  setTimeout(()=>{
+    const sections=CTX_ORDER.map(n=>{
+      const b=SITE_CONTENT.contextTypes[n];
+      return b ? {title:b.num+'. '+b.name, body:b.text} : null;
+    }).filter(Boolean);
+    dispatch(sections,'Forms-of-Context-All-30-Types',
+             'All 30 Forms of Context in Textual Analysis',fmt,'prog-all30');
+  },80);
+}
+
+function downloadTab(fmt){
+  const sel=document.getElementById('tabSelect');
+  const tabId=sel.value;
+  const label=TAB_LABELS[tabId]||sel.options[sel.selectedIndex].text;
+  setProgress('prog-tab','⏳ Extracting: '+label+'...');
+  setTimeout(()=>{
+    const d=getSectionData(tabId);
+    const fname='Forms-of-Context-'+label.replace(/[^a-zA-Z0-9]+/g,'-').replace(/-+$/,'');
+    dispatch([d],fname,label,fmt,'prog-tab');
+  },80);
+}
+
+function downloadCtx(fmt){
+  const sel=document.getElementById('ctxSelect');
+  const num=sel.value;
+  const b=SITE_CONTENT.contextTypes[num];
+  if(!b){setProgress('prog-ctx','❌ Context type not found');return;}
+  const label=b.num+'. '+b.name;
+  setProgress('prog-ctx','⏳ Preparing: '+label+'...');
+  setTimeout(()=>{
+    const fname='Context-Type-'+num+'-'+b.name.replace(/[^a-zA-Z0-9]+/g,'-');
+    dispatch([{title:label,body:b.text}],fname,label,fmt,'prog-ctx');
+  },80);
+}
+
+
+// ═══════════════════════════════════════════════════════
+// HAMBURGER MENU
+// ═══════════════════════════════════════════════════════
+function toggleHam() {
+  const panel = document.getElementById('ham-panel');
+  const overlay = document.getElementById('ham-overlay');
+  const btn = document.getElementById('ham-btn');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    closeHam();
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    btn.textContent = '✕';
+  }
+}
+
+function closeHam() {
+  const panel = document.getElementById('ham-panel');
+  const overlay = document.getElementById('ham-overlay');
+  const btn = document.getElementById('ham-btn');
+  if (panel) { panel.classList.remove('open'); }
+  if (overlay) { overlay.classList.remove('open'); }
+  if (btn) { btn.setAttribute('aria-expanded', 'false'); btn.textContent = '☰'; }
+}
+
+function navGo(pageId) {
+  const fakBtn = { classList: { add: function(){}, remove: function(){} } };
+  showPage(pageId, fakBtn);
+  closeHam();
+}
+
+function navGoCat(pageId, catId) {
+  navGo(pageId);
+  setTimeout(() => switchCat(catId), 80);
+}
+
+function navGoSub(pageId, subId) {
+  navGo(pageId);
+  setTimeout(() => { if (typeof switchSub === 'function') switchSub(subId); }, 80);
+}
+
+function navGoKJV(panelId) {
+  navGo('kjv-authority');
+  setTimeout(() => { if (typeof switchKJV === 'function') switchKJV(panelId); }, 80);
+}
+
+// Close ham on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeHam();
+});
+
 </script>
 
 <!-- ── SEARCH MODAL ── -->
